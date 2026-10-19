@@ -4,9 +4,13 @@ node_modules/
 
 # Build artifacts
 dist/
-*/dist/
+client/dist/
 build/
 */build/
+!server/dist/
+!server/dist/**
+!shared/dist/
+!shared/dist/**
 
 # Environment variables
 .env

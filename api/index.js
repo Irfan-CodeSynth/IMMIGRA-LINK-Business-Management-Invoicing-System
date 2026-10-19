@@ -1,18 +1,18 @@
 const app = require("../server/dist/server").default || require("../server/dist/server");
 const { connectDB } = require("../server/dist/config/db");
-const { seedDatabase } = require("../server/dist/utils/seed");
-
-let isReady = false;
 
 module.exports = async (req, res) => {
-  if (!isReady) {
-    try {
-      await connectDB();
-      await seedDatabase();
-    } catch (err) {
-      console.error("[Vercel-Init-Error]:", err);
-    }
-    isReady = true;
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error("[Vercel-Database-Error]:", err);
+    return res.status(500).json({
+      success: false,
+      message:
+        "Database connection failed: " +
+        (err.message || String(err)),
+    });
   }
+
   return app(req, res);
 };
