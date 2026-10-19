@@ -1,6 +1,7 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { CompanySettingsModel } from "../models/CompanySettings";
+import { SequenceModel, peekNextSequence } from "../models/Sequence";
 import { SettingsUpdateSchema } from "@immigra/shared";
 import { AuditLogModel } from "../models/AuditLog";
 
@@ -10,7 +11,10 @@ export async function getSettings(req: AuthenticatedRequest, res: Response): Pro
     if (!settings) {
       settings = await CompanySettingsModel.create({});
     }
-    res.json({ success: true, data: settings });
+    const currentNext = await peekNextSequence("INVOICE_SEQUENCE", 1);
+    const settingsObj = settings.toObject();
+    settingsObj.invoiceNextSequence = currentNext;
+    res.json({ success: true, data: settingsObj });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -32,6 +36,16 @@ export async function updateSettings(req: AuthenticatedRequest, res: Response): 
       await settings.save();
     }
 
+    // Synchronize sequence number if user customized next number
+    if (typeof parsed.data.invoiceNextSequence === "number") {
+      const nextNum = Math.max(1, parsed.data.invoiceNextSequence);
+      await SequenceModel.findOneAndUpdate(
+        { key: "INVOICE_SEQUENCE" },
+        { sequence: nextNum - 1 },
+        { upsert: true }
+      );
+    }
+
     if (req.user) {
       await AuditLogModel.create({
         userId: req.user.userId,
@@ -42,7 +56,10 @@ export async function updateSettings(req: AuthenticatedRequest, res: Response): 
       });
     }
 
-    res.json({ success: true, data: settings });
+    const currentNext = await peekNextSequence("INVOICE_SEQUENCE", 1);
+    const settingsObj = settings.toObject();
+    settingsObj.invoiceNextSequence = currentNext;
+    res.json({ success: true, data: settingsObj });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

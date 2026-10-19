@@ -139,8 +139,8 @@ export const SettingsUpdateSchema = z.object({
     swiftCode: z.string().optional(),
     branch: z.string().optional(),
   }),
-  invoicePrefix: z.string().default("INV/MAIN/"),
-  invoiceNextSequence: z.number().min(1).default(1001),
+  invoicePrefix: z.string().default("INV-"),
+  invoiceNextSequence: z.number().min(1).default(1),
   invoiceDefaultNotes: z.string().optional().default(""),
   invoicePaymentInstructions: z.string().optional().default(""),
 });

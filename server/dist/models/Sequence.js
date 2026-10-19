@@ -40,13 +40,15 @@ exports.peekNextSequence = peekNextSequence;
 const mongoose_1 = __importStar(require("mongoose"));
 const SequenceSchema = new mongoose_1.Schema({
     key: { type: String, required: true, unique: true },
-    sequence: { type: Number, required: true, default: 1000 },
+    sequence: { type: Number, required: true, default: 0 },
 });
 exports.SequenceModel = mongoose_1.default.model("Sequence", SequenceSchema);
 /**
- * Format a sequence number:
- * - If sequence < 1000, pads with leading zeros (e.g. 3 -> "003" for "INV-003")
- * - If sequence >= 1000, returns natural string (e.g. 1165 -> "1165" for "INV/MAIN/1165")
+ * Format a sequence number with 3-digit padding:
+ * 1 -> "001" (e.g. INV-001)
+ * 2 -> "002" (e.g. INV-002)
+ * 3 -> "003" (e.g. INV-003)
+ * 1000 -> "1000"
  */
 function formatSequence(seq, minPadding = 3) {
     if (seq < 1000) {
@@ -55,63 +57,21 @@ function formatSequence(seq, minPadding = 3) {
     return String(seq);
 }
 /**
- * Get or determine the starting sequence number based on existing documents.
+ * Atomically increments and returns the next sequential number starting from 1.
  */
-async function resolveInitialSequence(key, fallbackDefault = 1000) {
-    try {
-        if (key === "INVOICE_SEQUENCE") {
-            const docs = await mongoose_1.default.connection
-                .collection("invoices")
-                .find({})
-                .sort({ sequenceNumber: -1 })
-                .limit(1)
-                .toArray();
-            if (docs.length > 0 && typeof docs[0].sequenceNumber === "number" && docs[0].sequenceNumber >= 1000) {
-                return docs[0].sequenceNumber;
-            }
-            return 1165; // Matches the official Immigra Link reference invoice INV/MAIN/1165
-        }
-        if (key === "QUOTATION_SEQUENCE") {
-            const docs = await mongoose_1.default.connection
-                .collection("quotations")
-                .find({})
-                .sort({ createdAt: -1 })
-                .limit(1)
-                .toArray();
-            if (docs.length > 0 && docs[0].quotationNumber) {
-                const match = String(docs[0].quotationNumber).match(/(\d+)$/);
-                if (match) {
-                    return parseInt(match[1], 10);
-                }
-            }
-            return 1000;
-        }
-    }
-    catch (err) {
-        // Fall back to safe default
-    }
-    return fallbackDefault;
-}
-/**
- * Atomically increments and returns the next sequential number.
- */
-async function getNextSequence(key, defaultStart = 1001) {
-    let existing = await exports.SequenceModel.findOne({ key });
-    if (!existing) {
-        const baseNumber = await resolveInitialSequence(key, defaultStart - 1);
-        existing = await exports.SequenceModel.findOneAndUpdate({ key }, { $setOnInsert: { sequence: baseNumber } }, { upsert: true, new: true });
-    }
+async function getNextSequence(key, defaultStart = 1) {
+    const baseDefault = Math.max(0, defaultStart - 1);
+    await exports.SequenceModel.findOneAndUpdate({ key }, { $setOnInsert: { sequence: baseDefault } }, { upsert: true, new: true });
     const result = await exports.SequenceModel.findOneAndUpdate({ key }, { $inc: { sequence: 1 } }, { new: true });
     return result.sequence;
 }
 /**
- * Peeks at the next sequential number without incrementing.
+ * Peeks at the next sequential number without incrementing (default start: 1).
  */
-async function peekNextSequence(key, defaultStart = 1001) {
+async function peekNextSequence(key, defaultStart = 1) {
     const existing = await exports.SequenceModel.findOne({ key });
     if (!existing) {
-        const baseNumber = await resolveInitialSequence(key, defaultStart - 1);
-        return baseNumber + 1;
+        return defaultStart;
     }
     return existing.sequence + 1;
 }

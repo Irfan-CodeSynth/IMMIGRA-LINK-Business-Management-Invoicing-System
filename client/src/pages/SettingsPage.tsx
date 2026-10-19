@@ -32,7 +32,8 @@ export const SettingsPage: React.FC = () => {
   const [swiftCode, setSwiftCode] = useState("EBIBAEAD");
 
   // Invoice Template
-  const [invoicePrefix, setInvoicePrefix] = useState("INV/MAIN/");
+  const [invoicePrefix, setInvoicePrefix] = useState("INV-");
+  const [invoiceNextSequence, setInvoiceNextSequence] = useState<number>(1);
   const [invoiceDefaultNotes, setInvoiceDefaultNotes] = useState(
     "Thank you for trusting Immigra Link Business Services. For questions regarding this invoice, contact info@immigralink.ae."
   );
@@ -61,6 +62,7 @@ export const SettingsPage: React.FC = () => {
             setSwiftCode(s.bankDetails.swiftCode || "");
           }
           if (s.invoicePrefix) setInvoicePrefix(s.invoicePrefix);
+          if (s.invoiceNextSequence) setInvoiceNextSequence(s.invoiceNextSequence);
           if (s.invoiceDefaultNotes) setInvoiceDefaultNotes(s.invoiceDefaultNotes);
           if (s.invoicePaymentInstructions) setInvoicePaymentInstructions(s.invoicePaymentInstructions);
         }
@@ -98,6 +100,7 @@ export const SettingsPage: React.FC = () => {
           swiftCode,
         },
         invoicePrefix,
+        invoiceNextSequence: Number(invoiceNextSequence) || 1,
         invoiceDefaultNotes,
         invoicePaymentInstructions,
       };
@@ -310,20 +313,50 @@ export const SettingsPage: React.FC = () => {
             <span>Invoicing Numbering & Notes</span>
           </h2>
 
-          <div>
-            <label className="block font-semibold text-slate-700 mb-1">
-              Invoice Prefix (e.g. INV/MAIN/ or INV-)
-            </label>
-            <input
-              type="text"
-              required
-              value={invoicePrefix}
-              onChange={(e) => setInvoicePrefix(e.target.value)}
-              className="w-full md:w-64 border border-slate-300 rounded-lg p-2 font-mono font-bold"
-            />
-            <p className="text-[11px] text-slate-500 mt-1">
-              Controls invoice sequence format. Realistic official default: <code className="font-mono text-brand-navy font-bold">INV/MAIN/</code> (generates <code className="font-mono text-brand-navy">INV/MAIN/1165</code>, <code className="font-mono text-brand-navy">INV/MAIN/1166</code>) or <code className="font-mono text-brand-navy">INV-</code> (generates <code className="font-mono text-brand-navy">INV-003</code>).
-            </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Invoice Prefix
+              </label>
+              <input
+                type="text"
+                required
+                value={invoicePrefix}
+                onChange={(e) => setInvoicePrefix(e.target.value)}
+                placeholder="e.g. INV- or INV/MAIN/"
+                className="w-full border border-slate-300 rounded-lg p-2 font-mono font-bold"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Prefix before the sequence number (e.g. <code className="font-mono text-brand-navy font-bold">INV-</code> or <code className="font-mono text-brand-navy font-bold">INV/MAIN/</code>).
+              </p>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-700 mb-1">
+                Next Invoice Number (Starts from 1)
+              </label>
+              <input
+                type="number"
+                min="1"
+                required
+                value={invoiceNextSequence}
+                onChange={(e) => setInvoiceNextSequence(parseInt(e.target.value) || 1)}
+                className="w-full border border-slate-300 rounded-lg p-2 font-mono font-bold"
+              />
+              <p className="text-[11px] text-slate-500 mt-1">
+                Sequential counter starting number. Set to 1 for <code className="font-mono text-brand-navy font-bold">001</code>.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3 bg-slate-900 rounded-lg text-white flex items-center justify-between border border-brand-gold/30">
+            <span className="text-xs text-slate-300 font-medium">Live Preview of Next Invoice ID:</span>
+            <span className="font-mono text-sm font-bold text-brand-gold bg-slate-800 px-3 py-1 rounded border border-slate-700">
+              {invoicePrefix}
+              {invoiceNextSequence < 1000
+                ? String(invoiceNextSequence).padStart(3, "0")
+                : String(invoiceNextSequence)}
+            </span>
           </div>
 
           <div>

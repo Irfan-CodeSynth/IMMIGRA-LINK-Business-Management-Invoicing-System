@@ -50,8 +50,8 @@ const CompanySettingsSchema = new Schema<ICompanySettingsDocument>(
       swiftCode: { type: String, default: "EBIBAEAD" },
       branch: { type: String, default: "Deira Main Branch, Dubai" },
     },
-    invoicePrefix: { type: String, default: "INV/MAIN/" },
-    invoiceNextSequence: { type: Number, default: 1001 },
+    invoicePrefix: { type: String, default: "INV-" },
+    invoiceNextSequence: { type: Number, default: 1 },
     invoiceDefaultNotes: {
       type: String,
       default: "Thank you for choosing Immigra Link Business Services. For any inquiries regarding this invoice, please reach out to our customer care.",

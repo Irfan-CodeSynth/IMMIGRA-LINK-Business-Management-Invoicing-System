@@ -60,10 +60,10 @@ export async function listInvoices(req: AuthenticatedRequest, res: Response): Pr
 export async function getNextInvoiceNumber(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const settings: any = (await CompanySettingsModel.findOne()) || {
-      invoicePrefix: "INV/MAIN/",
+      invoicePrefix: "INV-",
     };
-    const prefix = settings.invoicePrefix || "INV/MAIN/";
-    const sequenceNumber = await peekNextSequence("INVOICE_SEQUENCE", 1165);
+    const prefix = settings.invoicePrefix || "INV-";
+    const sequenceNumber = await peekNextSequence("INVOICE_SEQUENCE", 1);
     const formattedSeq = formatSequence(sequenceNumber);
     const nextInvoiceNumber = `${prefix}${formattedSeq}`;
 
@@ -123,14 +123,14 @@ export async function createInvoice(req: AuthenticatedRequest, res: Response): P
 
     // Get company settings for prefix
     const settings: any = (await CompanySettingsModel.findOne()) || {
-      invoicePrefix: "INV/MAIN/",
+      invoicePrefix: "INV-",
       invoiceDefaultNotes: "Thank you for choosing Immigra Link Business Services.",
       invoicePaymentInstructions: "Please transfer payment via Bank or Cash.",
     };
-    const prefix = settings.invoicePrefix || "INV/MAIN/";
+    const prefix = settings.invoicePrefix || "INV-";
 
-    // Generate atomic sequence number (continuing sequentially from 1165 reference)
-    const sequenceNumber = await getNextSequence("INVOICE_SEQUENCE", 1165);
+    // Generate atomic sequence number starting from 1 (e.g. 001, 002, 003...)
+    const sequenceNumber = await getNextSequence("INVOICE_SEQUENCE", 1);
     const formattedSeq = formatSequence(sequenceNumber);
     const invoiceNumber = `${prefix}${formattedSeq}`;
 

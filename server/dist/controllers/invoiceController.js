@@ -67,10 +67,10 @@ async function listInvoices(req, res) {
 async function getNextInvoiceNumber(req, res) {
     try {
         const settings = (await CompanySettings_1.CompanySettingsModel.findOne()) || {
-            invoicePrefix: "INV/MAIN/",
+            invoicePrefix: "INV-",
         };
-        const prefix = settings.invoicePrefix || "INV/MAIN/";
-        const sequenceNumber = await (0, Sequence_1.peekNextSequence)("INVOICE_SEQUENCE", 1165);
+        const prefix = settings.invoicePrefix || "INV-";
+        const sequenceNumber = await (0, Sequence_1.peekNextSequence)("INVOICE_SEQUENCE", 1);
         const formattedSeq = (0, Sequence_1.formatSequence)(sequenceNumber);
         const nextInvoiceNumber = `${prefix}${formattedSeq}`;
         res.json({
@@ -124,13 +124,13 @@ async function createInvoice(req, res) {
         }
         // Get company settings for prefix
         const settings = (await CompanySettings_1.CompanySettingsModel.findOne()) || {
-            invoicePrefix: "INV/MAIN/",
+            invoicePrefix: "INV-",
             invoiceDefaultNotes: "Thank you for choosing Immigra Link Business Services.",
             invoicePaymentInstructions: "Please transfer payment via Bank or Cash.",
         };
-        const prefix = settings.invoicePrefix || "INV/MAIN/";
-        // Generate atomic sequence number (continuing sequentially from 1165 reference)
-        const sequenceNumber = await (0, Sequence_1.getNextSequence)("INVOICE_SEQUENCE", 1165);
+        const prefix = settings.invoicePrefix || "INV-";
+        // Generate atomic sequence number starting from 1 (e.g. 001, 002, 003...)
+        const sequenceNumber = await (0, Sequence_1.getNextSequence)("INVOICE_SEQUENCE", 1);
         const formattedSeq = (0, Sequence_1.formatSequence)(sequenceNumber);
         const invoiceNumber = `${prefix}${formattedSeq}`;
         // Calculate line items in exact fils

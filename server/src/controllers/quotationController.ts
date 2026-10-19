@@ -66,8 +66,8 @@ export async function createQuotation(req: AuthenticatedRequest, res: Response):
       return;
     }
 
-    const seq = await getNextSequence("QUOTATION_SEQUENCE", 1001);
-    const quotationNumber = `QT/MAIN/${formatSequence(seq)}`;
+    const seq = await getNextSequence("QUOTATION_SEQUENCE", 1);
+    const quotationNumber = `QT-${formatSequence(seq)}`;
 
     let subtotalFils = 0;
     let totalDiscountFils = 0;
@@ -138,12 +138,12 @@ export async function convertQuotationToInvoice(req: AuthenticatedRequest, res: 
     }
 
     const settings: any = (await CompanySettingsModel.findOne()) || {
-      invoicePrefix: "INV/MAIN/",
+      invoicePrefix: "INV-",
       invoiceDefaultNotes: "Thank you for choosing Immigra Link Business Services.",
       invoicePaymentInstructions: "Please transfer payment via Bank or Cash.",
     };
-    const prefix = settings.invoicePrefix || "INV/MAIN/";
-    const sequenceNumber = await getNextSequence("INVOICE_SEQUENCE", 1165);
+    const prefix = settings.invoicePrefix || "INV-";
+    const sequenceNumber = await getNextSequence("INVOICE_SEQUENCE", 1);
     const invoiceNumber = `${prefix}${formatSequence(sequenceNumber)}`;
     const qrVerificationHash = crypto.randomBytes(16).toString("hex");
 

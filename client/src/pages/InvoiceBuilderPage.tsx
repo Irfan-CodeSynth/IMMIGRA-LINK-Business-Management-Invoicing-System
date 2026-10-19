@@ -29,7 +29,7 @@ export const InvoiceBuilderPage: React.FC = () => {
 
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [services, setServices] = useState<IService[]>([]);
-  const [nextInvoiceNumber, setNextInvoiceNumber] = useState<string>("INV/MAIN/1166");
+  const [nextInvoiceNumber, setNextInvoiceNumber] = useState<string>("INV-001");
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 

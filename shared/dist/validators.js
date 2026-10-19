@@ -130,8 +130,8 @@ exports.SettingsUpdateSchema = zod_1.z.object({
         swiftCode: zod_1.z.string().optional(),
         branch: zod_1.z.string().optional(),
     }),
-    invoicePrefix: zod_1.z.string().default("INV/MAIN/"),
-    invoiceNextSequence: zod_1.z.number().min(1).default(1001),
+    invoicePrefix: zod_1.z.string().default("INV-"),
+    invoiceNextSequence: zod_1.z.number().min(1).default(1),
     invoiceDefaultNotes: zod_1.z.string().optional().default(""),
     invoicePaymentInstructions: zod_1.z.string().optional().default(""),
 });

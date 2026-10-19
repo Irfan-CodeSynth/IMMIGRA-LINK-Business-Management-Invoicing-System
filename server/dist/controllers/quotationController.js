@@ -70,8 +70,8 @@ async function createQuotation(req, res) {
             res.status(404).json({ success: false, message: "Customer not found" });
             return;
         }
-        const seq = await (0, Sequence_1.getNextSequence)("QUOTATION_SEQUENCE", 1001);
-        const quotationNumber = `QT/MAIN/${(0, Sequence_1.formatSequence)(seq)}`;
+        const seq = await (0, Sequence_1.getNextSequence)("QUOTATION_SEQUENCE", 1);
+        const quotationNumber = `QT-${(0, Sequence_1.formatSequence)(seq)}`;
         let subtotalFils = 0;
         let totalDiscountFils = 0;
         const calculatedItems = items.map((item) => {
@@ -133,12 +133,12 @@ async function convertQuotationToInvoice(req, res) {
             return;
         }
         const settings = (await CompanySettings_1.CompanySettingsModel.findOne()) || {
-            invoicePrefix: "INV/MAIN/",
+            invoicePrefix: "INV-",
             invoiceDefaultNotes: "Thank you for choosing Immigra Link Business Services.",
             invoicePaymentInstructions: "Please transfer payment via Bank or Cash.",
         };
-        const prefix = settings.invoicePrefix || "INV/MAIN/";
-        const sequenceNumber = await (0, Sequence_1.getNextSequence)("INVOICE_SEQUENCE", 1165);
+        const prefix = settings.invoicePrefix || "INV-";
+        const sequenceNumber = await (0, Sequence_1.getNextSequence)("INVOICE_SEQUENCE", 1);
         const invoiceNumber = `${prefix}${(0, Sequence_1.formatSequence)(sequenceNumber)}`;
         const qrVerificationHash = crypto_1.default.randomBytes(16).toString("hex");
         const invoice = await Invoice_1.InvoiceModel.create({
