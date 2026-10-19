@@ -40,6 +40,7 @@ router.put("/services/:id", serviceController_1.updateService);
 router.patch("/services/:id/toggle-status", serviceController_1.toggleServiceStatus);
 // Invoices
 router.get("/invoices", invoiceController_1.listInvoices);
+router.get("/invoices/next-number", invoiceController_1.getNextInvoiceNumber);
 router.get("/invoices/:id*", invoiceController_1.getInvoice);
 router.post("/invoices", invoiceController_1.createInvoice);
 router.patch("/invoices/:id/issue", invoiceController_1.issueDraftInvoice);

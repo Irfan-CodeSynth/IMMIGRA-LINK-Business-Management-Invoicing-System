@@ -16,6 +16,7 @@ import {
 import {
   listInvoices,
   getInvoice,
+  getNextInvoiceNumber,
   createInvoice,
   issueDraftInvoice,
   voidInvoice,
@@ -81,6 +82,7 @@ router.patch("/services/:id/toggle-status", toggleServiceStatus);
 
 // Invoices
 router.get("/invoices", listInvoices);
+router.get("/invoices/next-number", getNextInvoiceNumber);
 router.get("/invoices/:id*", getInvoice);
 router.post("/invoices", createInvoice);
 router.patch("/invoices/:id/issue", issueDraftInvoice);

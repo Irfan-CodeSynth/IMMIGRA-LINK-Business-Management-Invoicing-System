@@ -5,7 +5,7 @@ import { QuotationModel } from "../models/Quotation";
 import { InvoiceModel } from "../models/Invoice";
 import { CustomerModel } from "../models/Customer";
 import { CompanySettingsModel } from "../models/CompanySettings";
-import { getNextSequence } from "../models/Sequence";
+import { getNextSequence, formatSequence } from "../models/Sequence";
 import { FinancialService } from "../services/financialService";
 import { aedToFils, numberToAedWords, QuotationStatus, InvoiceStatus } from "@immigra/shared";
 import { QuotationCreateSchema } from "@immigra/shared";
@@ -67,7 +67,7 @@ export async function createQuotation(req: AuthenticatedRequest, res: Response):
     }
 
     const seq = await getNextSequence("QUOTATION_SEQUENCE", 1001);
-    const quotationNumber = `QT/MAIN/${seq}`;
+    const quotationNumber = `QT/MAIN/${formatSequence(seq)}`;
 
     let subtotalFils = 0;
     let totalDiscountFils = 0;
@@ -143,8 +143,8 @@ export async function convertQuotationToInvoice(req: AuthenticatedRequest, res: 
       invoicePaymentInstructions: "Please transfer payment via Bank or Cash.",
     };
     const prefix = settings.invoicePrefix || "INV/MAIN/";
-    const sequenceNumber = await getNextSequence("INVOICE_SEQUENCE", 1001);
-    const invoiceNumber = `${prefix}${sequenceNumber}`;
+    const sequenceNumber = await getNextSequence("INVOICE_SEQUENCE", 1165);
+    const invoiceNumber = `${prefix}${formatSequence(sequenceNumber)}`;
     const qrVerificationHash = crypto.randomBytes(16).toString("hex");
 
     const invoice = await InvoiceModel.create({

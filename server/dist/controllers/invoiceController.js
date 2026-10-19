@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.listInvoices = listInvoices;
+exports.getNextInvoiceNumber = getNextInvoiceNumber;
 exports.getInvoice = getInvoice;
 exports.createInvoice = createInvoice;
 exports.issueDraftInvoice = issueDraftInvoice;
@@ -63,6 +64,28 @@ async function listInvoices(req, res) {
         res.status(500).json({ success: false, message: error.message });
     }
 }
+async function getNextInvoiceNumber(req, res) {
+    try {
+        const settings = (await CompanySettings_1.CompanySettingsModel.findOne()) || {
+            invoicePrefix: "INV/MAIN/",
+        };
+        const prefix = settings.invoicePrefix || "INV/MAIN/";
+        const sequenceNumber = await (0, Sequence_1.peekNextSequence)("INVOICE_SEQUENCE", 1165);
+        const formattedSeq = (0, Sequence_1.formatSequence)(sequenceNumber);
+        const nextInvoiceNumber = `${prefix}${formattedSeq}`;
+        res.json({
+            success: true,
+            data: {
+                nextInvoiceNumber,
+                sequenceNumber,
+                prefix,
+            },
+        });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
 async function getInvoice(req, res) {
     try {
         const rawParam = req.params.id ? `${req.params.id}${req.params[0] || ""}` : "";
@@ -106,9 +129,10 @@ async function createInvoice(req, res) {
             invoicePaymentInstructions: "Please transfer payment via Bank or Cash.",
         };
         const prefix = settings.invoicePrefix || "INV/MAIN/";
-        // Generate atomic sequence number
-        const sequenceNumber = await (0, Sequence_1.getNextSequence)("INVOICE_SEQUENCE", 1001);
-        const invoiceNumber = `${prefix}${sequenceNumber}`;
+        // Generate atomic sequence number (continuing sequentially from 1165 reference)
+        const sequenceNumber = await (0, Sequence_1.getNextSequence)("INVOICE_SEQUENCE", 1165);
+        const formattedSeq = (0, Sequence_1.formatSequence)(sequenceNumber);
+        const invoiceNumber = `${prefix}${formattedSeq}`;
         // Calculate line items in exact fils
         let subtotalFils = 0;
         let totalDiscountFils = 0;

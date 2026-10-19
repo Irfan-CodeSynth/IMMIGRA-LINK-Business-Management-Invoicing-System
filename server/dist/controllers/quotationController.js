@@ -71,7 +71,7 @@ async function createQuotation(req, res) {
             return;
         }
         const seq = await (0, Sequence_1.getNextSequence)("QUOTATION_SEQUENCE", 1001);
-        const quotationNumber = `QT/MAIN/${seq}`;
+        const quotationNumber = `QT/MAIN/${(0, Sequence_1.formatSequence)(seq)}`;
         let subtotalFils = 0;
         let totalDiscountFils = 0;
         const calculatedItems = items.map((item) => {
@@ -138,8 +138,8 @@ async function convertQuotationToInvoice(req, res) {
             invoicePaymentInstructions: "Please transfer payment via Bank or Cash.",
         };
         const prefix = settings.invoicePrefix || "INV/MAIN/";
-        const sequenceNumber = await (0, Sequence_1.getNextSequence)("INVOICE_SEQUENCE", 1001);
-        const invoiceNumber = `${prefix}${sequenceNumber}`;
+        const sequenceNumber = await (0, Sequence_1.getNextSequence)("INVOICE_SEQUENCE", 1165);
+        const invoiceNumber = `${prefix}${(0, Sequence_1.formatSequence)(sequenceNumber)}`;
         const qrVerificationHash = crypto_1.default.randomBytes(16).toString("hex");
         const invoice = await Invoice_1.InvoiceModel.create({
             invoiceNumber,

@@ -4,7 +4,7 @@ import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { InvoiceModel } from "../models/Invoice";
 import { CustomerModel } from "../models/Customer";
 import { CompanySettingsModel } from "../models/CompanySettings";
-import { getNextSequence } from "../models/Sequence";
+import { getNextSequence, peekNextSequence, formatSequence } from "../models/Sequence";
 import { FinancialService } from "../services/financialService";
 import { generateBarcodeSvg, generateQrCodeDataUrl } from "../utils/barcode";
 import { aedToFils, numberToAedWords, InvoiceStatus } from "@immigra/shared";
@@ -50,6 +50,29 @@ export async function listInvoices(req: AuthenticatedRequest, res: Response): Pr
         total,
         page: Number(page),
         pages: Math.ceil(total / Number(limit)),
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function getNextInvoiceNumber(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const settings: any = (await CompanySettingsModel.findOne()) || {
+      invoicePrefix: "INV/MAIN/",
+    };
+    const prefix = settings.invoicePrefix || "INV/MAIN/";
+    const sequenceNumber = await peekNextSequence("INVOICE_SEQUENCE", 1165);
+    const formattedSeq = formatSequence(sequenceNumber);
+    const nextInvoiceNumber = `${prefix}${formattedSeq}`;
+
+    res.json({
+      success: true,
+      data: {
+        nextInvoiceNumber,
+        sequenceNumber,
+        prefix,
       },
     });
   } catch (error: any) {
@@ -106,9 +129,10 @@ export async function createInvoice(req: AuthenticatedRequest, res: Response): P
     };
     const prefix = settings.invoicePrefix || "INV/MAIN/";
 
-    // Generate atomic sequence number
-    const sequenceNumber = await getNextSequence("INVOICE_SEQUENCE", 1001);
-    const invoiceNumber = `${prefix}${sequenceNumber}`;
+    // Generate atomic sequence number (continuing sequentially from 1165 reference)
+    const sequenceNumber = await getNextSequence("INVOICE_SEQUENCE", 1165);
+    const formattedSeq = formatSequence(sequenceNumber);
+    const invoiceNumber = `${prefix}${formattedSeq}`;
 
     // Calculate line items in exact fils
     let subtotalFils = 0;

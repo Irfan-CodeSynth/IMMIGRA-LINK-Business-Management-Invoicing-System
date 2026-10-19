@@ -312,7 +312,7 @@ export const SettingsPage: React.FC = () => {
 
           <div>
             <label className="block font-semibold text-slate-700 mb-1">
-              Invoice Prefix (e.g. INV/MAIN/)
+              Invoice Prefix (e.g. INV/MAIN/ or INV-)
             </label>
             <input
               type="text"
@@ -321,6 +321,9 @@ export const SettingsPage: React.FC = () => {
               onChange={(e) => setInvoicePrefix(e.target.value)}
               className="w-full md:w-64 border border-slate-300 rounded-lg p-2 font-mono font-bold"
             />
+            <p className="text-[11px] text-slate-500 mt-1">
+              Controls invoice sequence format. Realistic official default: <code className="font-mono text-brand-navy font-bold">INV/MAIN/</code> (generates <code className="font-mono text-brand-navy">INV/MAIN/1165</code>, <code className="font-mono text-brand-navy">INV/MAIN/1166</code>) or <code className="font-mono text-brand-navy">INV-</code> (generates <code className="font-mono text-brand-navy">INV-003</code>).
+            </p>
           </div>
 
           <div>

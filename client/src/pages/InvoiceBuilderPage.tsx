@@ -29,6 +29,7 @@ export const InvoiceBuilderPage: React.FC = () => {
 
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [services, setServices] = useState<IService[]>([]);
+  const [nextInvoiceNumber, setNextInvoiceNumber] = useState<string>("INV/MAIN/1166");
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -69,9 +70,10 @@ export const InvoiceBuilderPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [custRes, srvRes] = await Promise.all([
+        const [custRes, srvRes, nextNumRes] = await Promise.all([
           api.get("/customers?limit=100"),
           api.get("/services?activeOnly=true"),
+          api.get("/invoices/next-number").catch(() => null),
         ]);
         if (custRes.data.success) {
           setCustomers(custRes.data.data.customers);
@@ -81,6 +83,9 @@ export const InvoiceBuilderPage: React.FC = () => {
         }
         if (srvRes.data.success) {
           setServices(srvRes.data.data);
+        }
+        if (nextNumRes?.data?.success && nextNumRes.data.data?.nextInvoiceNumber) {
+          setNextInvoiceNumber(nextNumRes.data.data.nextInvoiceNumber);
         }
       } catch (err) {
         console.error("Error loading builder data:", err);
@@ -246,11 +251,16 @@ export const InvoiceBuilderPage: React.FC = () => {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Create New Invoice
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                Create New Invoice
+              </h1>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-slate-900 text-brand-gold border border-brand-gold/40 shadow-sm">
+                Invoice ID: {nextInvoiceNumber}
+              </span>
+            </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Build a professional UAE commercial invoice for Immigra Link
+              Build a professional UAE commercial invoice for Immigra Link (Strict sequential numbering)
             </p>
           </div>
         </div>
