@@ -1,39 +1,52 @@
 import mongoose from "mongoose";
-import { MongoMemoryReplSet } from "mongodb-memory-server";
 
-let memoryReplSet: MongoMemoryReplSet | null = null;
+let isConnecting = false;
 
 export async function connectDB(): Promise<void> {
+  // If already connected, return immediately (crucial for serverless functions)
+  if (mongoose.connection.readyState >= 1) {
+    return;
+  }
+
+  if (isConnecting) {
+    while (mongoose.connection.readyState === 2) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    if (mongoose.connection.readyState >= 1) return;
+  }
+
+  isConnecting = true;
   const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/immigra_link";
 
   try {
-    // Attempt standard connection first with 3s timeout
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 5000,
+      maxPoolSize: 10,
     });
-    console.log(`[Database] Connected to MongoDB at ${uri}`);
+    console.log(`[Database] Connected to MongoDB`);
   } catch (err: any) {
-    console.log("[Database] Local/Configured MongoDB not reachable. Initializing embedded replica set for seamless zero-config local execution...");
-    try {
-      memoryReplSet = await MongoMemoryReplSet.create({
-        replSet: { count: 1, storageEngine: "wiredTiger" },
-      });
-      const memUri = memoryReplSet.getUri();
-      await mongoose.connect(memUri);
-      console.log(`[Database] Connected to embedded MongoDB replica set at: ${memUri}`);
-    } catch (memErr) {
-      console.error("[Database] Failed to start embedded replica set, attempting single instance:", memErr);
-      const { MongoMemoryServer } = await import("mongodb-memory-server");
-      const memServer = await MongoMemoryServer.create();
-      await mongoose.connect(memServer.getUri());
-      console.log(`[Database] Connected to embedded MongoDB at: ${memServer.getUri()}`);
+    // Only attempt embedded in-memory MongoDB in local development when not on Vercel
+    if (!process.env.VERCEL && process.env.NODE_ENV !== "production") {
+      console.log("[Database] Local MongoDB unreachable. Initializing embedded replica set...");
+      try {
+        const { MongoMemoryReplSet } = await import("mongodb-memory-server");
+        const memoryReplSet = await MongoMemoryReplSet.create({
+          replSet: { count: 1, storageEngine: "wiredTiger" },
+        });
+        await mongoose.connect(memoryReplSet.getUri());
+        console.log(`[Database] Connected to embedded MongoDB replica set`);
+      } catch (memErr) {
+        console.error("[Database] Failed to start embedded replica set:", memErr);
+      }
+    } else {
+      console.error("[Database] MongoDB connection failed:", err.message);
+      throw err;
     }
+  } finally {
+    isConnecting = false;
   }
 }
 
 export async function disconnectDB(): Promise<void> {
   await mongoose.disconnect();
-  if (memoryReplSet) {
-    await memoryReplSet.stop();
-  }
 }

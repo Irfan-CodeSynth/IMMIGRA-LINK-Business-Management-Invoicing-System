@@ -76,8 +76,10 @@ async function startServer() {
   });
 }
 
-startServer().catch((err) => {
-  console.error("Failed to start server:", err);
-});
+if (!process.env.VERCEL && require.main === module) {
+  startServer().catch((err) => {
+    console.error("Failed to start server:", err);
+  });
+}
 
 export default app;
