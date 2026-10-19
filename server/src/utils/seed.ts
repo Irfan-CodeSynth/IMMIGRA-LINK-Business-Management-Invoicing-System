@@ -235,3 +235,17 @@ export async function seedDatabase(): Promise<void> {
 
   console.log("[Seeder] Successfully seeded initial admin, accounts, services, customers, reference invoice INV/MAIN/1165 and payment!");
 }
+
+if (require.main === module) {
+  const { connectDB, disconnectDB } = require("../config/db");
+  connectDB()
+    .then(() => seedDatabase())
+    .then(() => {
+      console.log("[Seeder] Database seeding complete.");
+      process.exit(0);
+    })
+    .catch((err: any) => {
+      console.error("[Seeder] Error seeding database:", err);
+      process.exit(1);
+    });
+}
