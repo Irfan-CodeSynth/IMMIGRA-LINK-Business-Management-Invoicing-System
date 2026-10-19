@@ -1,0 +1,30 @@
+{
+  "name": "immigra-link-system",
+  "version": "1.0.0",
+  "description": "IMMIGRA LINK BUSINESS SERVICES - Enterprise Management, Invoicing, and Double-Entry Accounting System",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "build:shared": "node ./node_modules/typescript/bin/tsc --project shared/tsconfig.json",
+    "build:server": "node ./node_modules/typescript/bin/tsc --project server/tsconfig.json",
+    "build:client": "node ./node_modules/typescript/bin/tsc --project client/tsconfig.json && cd client && node ../node_modules/vite/bin/vite.js build",
+    "build": "npm run build:shared && npm run build:server && npm run build:client",
+    "dev:server": "node ./node_modules/tsx/dist/cli.mjs watch --tsconfig server/tsconfig.json server/src/server.ts",
+    "dev:client": "cd client && node ../node_modules/vite/bin/vite.js",
+    "seed": "node ./node_modules/tsx/dist/cli.mjs server/src/utils/seed.ts",
+    "test": "node ./node_modules/tsx/dist/cli.mjs server/src/tests/financial.test.ts"
+  },
+  "keywords": [
+    "immigra-link",
+    "uae",
+    "accounting",
+    "invoicing",
+    "mern"
+  ],
+  "author": "IMMIGRA LINK BUSINESS SERVICES",
+  "license": "ISC"
+}
