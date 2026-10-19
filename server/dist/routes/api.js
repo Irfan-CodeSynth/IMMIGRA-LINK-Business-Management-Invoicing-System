@@ -32,39 +32,57 @@ router.get("/customers", customerController_1.listCustomers);
 router.get("/customers/:id", customerController_1.getCustomer);
 router.post("/customers", customerController_1.createCustomer);
 router.put("/customers/:id", customerController_1.updateCustomer);
+router.delete("/customers/:id", customerController_1.deleteCustomer);
 router.patch("/customers/:id/toggle-status", customerController_1.toggleCustomerStatus);
 // Services
 router.get("/services", serviceController_1.listServices);
+router.get("/services/:id", serviceController_1.getService);
 router.post("/services", serviceController_1.createService);
 router.put("/services/:id", serviceController_1.updateService);
+router.delete("/services/:id", serviceController_1.deleteService);
 router.patch("/services/:id/toggle-status", serviceController_1.toggleServiceStatus);
 // Invoices
 router.get("/invoices", invoiceController_1.listInvoices);
 router.get("/invoices/next-number", invoiceController_1.getNextInvoiceNumber);
 router.get("/invoices/:id*", invoiceController_1.getInvoice);
 router.post("/invoices", invoiceController_1.createInvoice);
+router.put("/invoices/:id", invoiceController_1.updateInvoice);
+router.delete("/invoices/:id", invoiceController_1.deleteInvoice);
 router.patch("/invoices/:id/issue", invoiceController_1.issueDraftInvoice);
 router.patch("/invoices/:id/void", invoiceController_1.voidInvoice);
 // Quotations
 router.get("/quotations", quotationController_1.listQuotations);
 router.get("/quotations/:id", quotationController_1.getQuotation);
 router.post("/quotations", quotationController_1.createQuotation);
+router.put("/quotations/:id", quotationController_1.updateQuotation);
+router.delete("/quotations/:id", quotationController_1.deleteQuotation);
 router.post("/quotations/:id/convert", quotationController_1.convertQuotationToInvoice);
 // Payments
 router.get("/payments", paymentController_1.listPayments);
 router.get("/payments/:id", paymentController_1.getPayment);
 router.post("/payments", paymentController_1.createPayment);
+router.put("/payments/:id", paymentController_1.updatePayment);
+router.delete("/payments/:id", paymentController_1.deletePayment);
 // Expenses
 router.get("/expenses", expenseController_1.listExpenses);
+router.get("/expenses/:id", expenseController_1.getExpense);
 router.post("/expenses", expenseController_1.createExpense);
+router.put("/expenses/:id", expenseController_1.updateExpense);
+router.delete("/expenses/:id", expenseController_1.deleteExpense);
 // Suppliers
 router.get("/suppliers", supplierController_1.listSuppliers);
+router.get("/suppliers/:id", supplierController_1.getSupplier);
 router.post("/suppliers", supplierController_1.createSupplier);
 router.put("/suppliers/:id", supplierController_1.updateSupplier);
+router.delete("/suppliers/:id", supplierController_1.deleteSupplier);
 // Accounting (Admin / Accountant / Manager only)
 router.get("/accounting/chart", accountingController_1.getChartOfAccounts);
 router.get("/accounting/chart-of-accounts", accountingController_1.getChartOfAccounts);
+router.post("/accounting/accounts", (0, authMiddleware_1.requireRole)([shared_1.UserRole.SUPER_ADMIN, shared_1.UserRole.ACCOUNTANT]), accountingController_1.createAccount);
+router.put("/accounting/accounts/:id", (0, authMiddleware_1.requireRole)([shared_1.UserRole.SUPER_ADMIN, shared_1.UserRole.ACCOUNTANT]), accountingController_1.updateAccount);
+router.delete("/accounting/accounts/:id", (0, authMiddleware_1.requireRole)([shared_1.UserRole.SUPER_ADMIN, shared_1.UserRole.ACCOUNTANT]), accountingController_1.deleteAccount);
 router.get("/accounting/journals", accountingController_1.getJournalEntries);
+router.delete("/accounting/journals/:id", (0, authMiddleware_1.requireRole)([shared_1.UserRole.SUPER_ADMIN, shared_1.UserRole.ACCOUNTANT]), accountingController_1.deleteJournalEntry);
 router.get("/accounting/ledger", accountingController_1.getGeneralLedger);
 router.get("/accounting/trial-balance", accountingController_1.getTrialBalance);
 router.get("/accounting/p-and-l", accountingController_1.getProfitAndLoss);
@@ -77,6 +95,6 @@ router.patch("/staff/:id/toggle-status", (0, authMiddleware_1.requireRole)([shar
 // Settings
 router.get("/settings", settingsController_1.getSettings);
 router.put("/settings", (0, authMiddleware_1.requireRole)([shared_1.UserRole.SUPER_ADMIN]), settingsController_1.updateSettings);
-// Audit logs
+// Audit logs (Admin only)
 router.get("/audit-logs", (0, authMiddleware_1.requireRole)([shared_1.UserRole.SUPER_ADMIN]), auditLogController_1.listAuditLogs);
 exports.default = router;

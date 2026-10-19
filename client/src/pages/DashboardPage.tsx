@@ -14,6 +14,9 @@ import {
   PlusCircle,
   Clock,
   CheckCircle,
+  Eye,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -40,6 +43,38 @@ export const DashboardPage: React.FC = () => {
       console.error("Dashboard error:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteInvoice = async (invoiceId: string, invoiceNo: string) => {
+    if (!window.confirm(`Are you sure you want to delete / void invoice ${invoiceNo}?`)) {
+      return;
+    }
+    try {
+      const res = await api.delete(`/invoices/${invoiceId}`);
+      if (res.data.success) {
+        await fetchDashboardData();
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to delete invoice");
+    }
+  };
+
+  const handleDeletePayment = async (paymentId: string, receiptNo: string) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete payment ${receiptNo}? Allocations and customer balance will revert.`
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await api.delete(`/payments/${paymentId}`);
+      if (res.data.success) {
+        await fetchDashboardData();
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to delete payment");
     }
   };
 
@@ -290,6 +325,7 @@ export const DashboardPage: React.FC = () => {
                   <th className="py-2.5 px-3">Customer</th>
                   <th className="py-2.5 px-3">Total (AED)</th>
                   <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -319,6 +355,31 @@ export const DashboardPage: React.FC = () => {
                         {inv.status?.replace("_", " ")}
                       </span>
                     </td>
+                    <td className="py-2.5 px-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Link
+                          to={`/invoices/${inv._id}`}
+                          className="p-1 text-slate-500 hover:text-brand-navy hover:bg-slate-100 rounded transition"
+                          title="View Invoice"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </Link>
+                        <Link
+                          to="/invoices"
+                          className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded transition"
+                          title="Manage / Edit Invoice"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteInvoice(inv._id, inv.invoiceNumber)}
+                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
+                          title="Delete / Void Invoice"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -345,6 +406,7 @@ export const DashboardPage: React.FC = () => {
                   <th className="py-2.5 px-3">Customer</th>
                   <th className="py-2.5 px-3">Amount (AED)</th>
                   <th className="py-2.5 px-3">Method</th>
+                  <th className="py-2.5 px-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -361,6 +423,31 @@ export const DashboardPage: React.FC = () => {
                     </td>
                     <td className="py-2.5 px-3 text-slate-500 font-medium">
                       {pay.paymentMethod}
+                    </td>
+                    <td className="py-2.5 px-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Link
+                          to="/payments"
+                          className="p-1 text-slate-500 hover:text-brand-navy hover:bg-slate-100 rounded transition"
+                          title="View / Manage Payments"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </Link>
+                        <Link
+                          to="/payments"
+                          className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded transition"
+                          title="Edit Payment"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => handleDeletePayment(pay._id, pay.receiptNumber)}
+                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
+                          title="Delete Payment"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

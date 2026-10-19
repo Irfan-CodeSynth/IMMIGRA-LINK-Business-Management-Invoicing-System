@@ -7,6 +7,8 @@ exports.listQuotations = listQuotations;
 exports.getQuotation = getQuotation;
 exports.createQuotation = createQuotation;
 exports.convertQuotationToInvoice = convertQuotationToInvoice;
+exports.updateQuotation = updateQuotation;
+exports.deleteQuotation = deleteQuotation;
 const crypto_1 = __importDefault(require("crypto"));
 const Quotation_1 = require("../models/Quotation");
 const Invoice_1 = require("../models/Invoice");
@@ -184,6 +186,73 @@ async function convertQuotationToInvoice(req, res) {
             });
         }
         res.json({ success: true, data: { quotation, invoice } });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function updateQuotation(req, res) {
+    try {
+        const quotation = await Quotation_1.QuotationModel.findById(req.params.id);
+        if (!quotation) {
+            res.status(404).json({ success: false, message: "Quotation not found" });
+            return;
+        }
+        if (quotation.status === shared_1.QuotationStatus.CONVERTED) {
+            res.status(400).json({ success: false, message: "Cannot edit a quotation that has already been converted to an invoice" });
+            return;
+        }
+        const { status, items, notes, termsAndConditions, expiryDate } = req.body;
+        if (items && Array.isArray(items)) {
+            let subtotalFils = 0;
+            let totalDiscountFils = 0;
+            const calculatedItems = items.map((item) => {
+                const unitRateFils = (0, shared_1.aedToFils)(item.unitRateAed || 0);
+                const discountFils = (0, shared_1.aedToFils)(item.discountAed || 0);
+                const lineTotalFils = Math.max(0, (item.quantity || 1) * unitRateFils - discountFils);
+                subtotalFils += (item.quantity || 1) * unitRateFils;
+                totalDiscountFils += discountFils;
+                return {
+                    serviceId: item.serviceId,
+                    serviceName: item.serviceName,
+                    description: item.description || "",
+                    quantity: item.quantity || 1,
+                    unitRateFils,
+                    discountFils,
+                    lineTotalFils,
+                };
+            });
+            const grandTotalFils = Math.max(0, subtotalFils - totalDiscountFils);
+            quotation.items = calculatedItems;
+            quotation.subtotalFils = subtotalFils;
+            quotation.discountFils = totalDiscountFils;
+            quotation.grandTotalFils = grandTotalFils;
+            quotation.amountInWords = (0, shared_1.numberToAedWords)(grandTotalFils, true);
+        }
+        if (status)
+            quotation.status = status;
+        if (notes !== undefined)
+            quotation.notes = notes;
+        if (termsAndConditions !== undefined)
+            quotation.termsAndConditions = termsAndConditions;
+        if (expiryDate)
+            quotation.expiryDate = new Date(expiryDate);
+        await quotation.save();
+        res.json({ success: true, data: quotation });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function deleteQuotation(req, res) {
+    try {
+        const quotation = await Quotation_1.QuotationModel.findById(req.params.id);
+        if (!quotation) {
+            res.status(404).json({ success: false, message: "Quotation not found" });
+            return;
+        }
+        await Quotation_1.QuotationModel.findByIdAndDelete(quotation._id);
+        res.json({ success: true, message: `Quotation "${quotation.quotationNumber}" deleted successfully`, data: quotation });
     }
     catch (error) {
         res.status(500).json({ success: false, message: error.message });

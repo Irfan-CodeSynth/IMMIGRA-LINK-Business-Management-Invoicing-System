@@ -10,6 +10,9 @@ import {
   X,
   Search,
   CheckCircle2,
+  Eye,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 
 export const PaymentsPage: React.FC = () => {
@@ -31,6 +34,12 @@ export const PaymentsPage: React.FC = () => {
 
   // View Receipt Modal
   const [viewingPayment, setViewingPayment] = useState<IPayment | null>(null);
+
+  // Edit Payment Modal
+  const [editingPayment, setEditingPayment] = useState<IPayment | null>(null);
+  const [editMethod, setEditMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
+  const [editReference, setEditReference] = useState("");
+  const [editNotes, setEditNotes] = useState("");
 
   const fetchPayments = async () => {
     setLoading(true);
@@ -127,6 +136,49 @@ export const PaymentsPage: React.FC = () => {
     }
   };
 
+  const handleOpenEdit = (p: IPayment) => {
+    setEditingPayment(p);
+    setEditMethod(p.paymentMethod);
+    setEditReference(p.referenceNumber || "");
+    setEditNotes(p.notes || "");
+  };
+
+  const handleUpdatePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPayment) return;
+    try {
+      const res = await api.put(`/payments/${editingPayment._id}`, {
+        paymentMethod: editMethod,
+        referenceNumber: editReference,
+        notes: editNotes,
+      });
+      if (res.data.success) {
+        setEditingPayment(null);
+        await fetchPayments();
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to update payment");
+    }
+  };
+
+  const handleDeletePayment = async (paymentId: string, receiptNo: string) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete payment ${receiptNo}? This will revert invoice allocations, customer balances, and journal entries.`
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await api.delete(`/payments/${paymentId}`);
+      if (res.data.success) {
+        await fetchPayments();
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to delete payment");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -208,12 +260,29 @@ export const PaymentsPage: React.FC = () => {
                       +{formatAed(p.amountFils)}
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={() => setViewingPayment(p)}
-                        className="text-xs text-brand-royal hover:underline font-semibold"
-                      >
-                        Receipt Voucher
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => setViewingPayment(p)}
+                          className="p-1.5 text-slate-500 hover:text-brand-navy hover:bg-slate-100 rounded transition"
+                          title="View Receipt Voucher"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenEdit(p)}
+                          className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded transition"
+                          title="Edit Payment"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeletePayment(p._id, p.receiptNumber)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
+                          title="Delete Payment"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -425,6 +494,113 @@ export const PaymentsPage: React.FC = () => {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Payment Modal */}
+      {editingPayment && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 text-xs">
+            <div className="p-4 bg-brand-navy text-white flex items-center justify-between">
+              <h3 className="text-sm font-bold flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-brand-gold" />
+                <span>Edit Payment Details ({editingPayment.receiptNumber})</span>
+              </h3>
+              <button
+                onClick={() => setEditingPayment(null)}
+                className="text-slate-300 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdatePayment} className="p-6 space-y-4">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Customer
+                </label>
+                <input
+                  type="text"
+                  disabled
+                  value={editingPayment.customerName || "Customer"}
+                  className="w-full border border-slate-200 bg-slate-100 rounded-lg p-2.5 text-slate-600 font-semibold cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Amount Received (AED)
+                </label>
+                <input
+                  type="text"
+                  disabled
+                  value={`${formatAed(editingPayment.amountFils)} AED`}
+                  className="w-full border border-slate-200 bg-slate-100 font-mono font-bold rounded-lg p-2.5 text-slate-700 cursor-not-allowed"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Amount cannot be edited directly to preserve ledger integrity. To adjust amounts, delete and re-enter.
+                </p>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Payment Method *
+                </label>
+                <select
+                  value={editMethod}
+                  onChange={(e) => setEditMethod(e.target.value as PaymentMethod)}
+                  className="w-full border border-slate-300 rounded-lg p-2.5 bg-slate-50 focus:ring-2 focus:ring-brand-gold focus:outline-none"
+                >
+                  <option value={PaymentMethod.CASH}>Cash in Hand</option>
+                  <option value={PaymentMethod.BANK_TRANSFER}>Bank Transfer</option>
+                  <option value={PaymentMethod.CARD}>Card</option>
+                  <option value={PaymentMethod.CHEQUE}>Cheque</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Reference / Transaction #
+                </label>
+                <input
+                  type="text"
+                  value={editReference}
+                  onChange={(e) => setEditReference(e.target.value)}
+                  placeholder="e.g. Bank slip or auth code"
+                  className="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-brand-gold focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Notes
+                </label>
+                <textarea
+                  rows={2}
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  placeholder="Internal notes..."
+                  className="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-brand-gold focus:outline-none"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingPayment(null)}
+                  className="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-brand-navy hover:bg-brand-navy/90 text-white font-bold rounded-lg shadow-sm"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

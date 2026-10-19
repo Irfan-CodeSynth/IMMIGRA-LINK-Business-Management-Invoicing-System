@@ -79,3 +79,77 @@ export async function createExpense(req: AuthenticatedRequest, res: Response): P
     res.status(500).json({ success: false, message: error.message });
   }
 }
+
+export async function getExpense(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const expense = await ExpenseModel.findById(req.params.id);
+    if (!expense) {
+      res.status(404).json({ success: false, message: "Expense voucher not found" });
+      return;
+    }
+    res.json({ success: true, data: expense });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function updateExpense(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const expense = await ExpenseModel.findById(req.params.id);
+    if (!expense) {
+      res.status(404).json({ success: false, message: "Expense not found" });
+      return;
+    }
+
+    const { payee, category, notes, paymentMethod, referenceNumber } = req.body;
+    if (payee !== undefined) expense.payee = payee;
+    if (category !== undefined) expense.category = category;
+    if (notes !== undefined) expense.notes = notes;
+    if (paymentMethod !== undefined) expense.paymentMethod = paymentMethod;
+    if (referenceNumber !== undefined) expense.referenceNumber = referenceNumber;
+
+    await expense.save();
+
+    if (req.user) {
+      await AuditLogModel.create({
+        userId: req.user.userId,
+        userName: req.user.name,
+        action: "UPDATE_EXPENSE",
+        entityType: "EXPENSE",
+        entityId: expense._id.toString(),
+        details: { expenseNumber: expense.expenseNumber },
+      });
+    }
+
+    res.json({ success: true, data: expense });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function deleteExpense(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const expense = await ExpenseModel.findById(req.params.id);
+    if (!expense) {
+      res.status(404).json({ success: false, message: "Expense not found" });
+      return;
+    }
+
+    await ExpenseModel.findByIdAndDelete(expense._id);
+
+    if (req.user) {
+      await AuditLogModel.create({
+        userId: req.user.userId,
+        userName: req.user.name,
+        action: "DELETE_EXPENSE",
+        entityType: "EXPENSE",
+        entityId: expense._id.toString(),
+        details: { expenseNumber: expense.expenseNumber, payee: expense.payee },
+      });
+    }
+
+    res.json({ success: true, message: `Expense voucher "${expense.expenseNumber}" deleted successfully`, data: expense });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}

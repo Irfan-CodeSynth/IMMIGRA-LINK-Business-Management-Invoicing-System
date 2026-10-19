@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
-import { formatAed, IAccount, IJournalEntry, AccountType } from "@immigra/shared";
+import { formatAed, IAccount, IJournalEntry, AccountType, AccountSubType } from "@immigra/shared";
 import {
   BookOpen,
   PlusCircle,
@@ -10,6 +10,8 @@ import {
   X,
   Plus,
   Trash2,
+  Eye,
+  Edit2,
 } from "lucide-react";
 
 export const AccountingPage: React.FC = () => {
@@ -29,6 +31,23 @@ export const AccountingPage: React.FC = () => {
     { accountCode: "4010", accountName: "Document Clearing Revenue", debitAed: 0, creditAed: 0, description: "" },
   ]);
   const [submitting, setSubmitting] = useState(false);
+
+  // Add Account Modal
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [newAccCode, setNewAccCode] = useState("");
+  const [newAccName, setNewAccName] = useState("");
+  const [newAccType, setNewAccType] = useState<AccountType>(AccountType.EXPENSE);
+  const [newAccSubType, setNewAccSubType] = useState<AccountSubType>(AccountSubType.OPERATING_EXPENSE);
+  const [newAccDesc, setNewAccDesc] = useState("");
+
+  // Edit Account Modal
+  const [editingAccount, setEditingAccount] = useState<IAccount | null>(null);
+  const [editAccName, setEditAccName] = useState("");
+  const [editAccType, setEditAccType] = useState<AccountType>(AccountType.EXPENSE);
+  const [editAccDesc, setEditAccDesc] = useState("");
+
+  // View Account Modal
+  const [viewingAccount, setViewingAccount] = useState<IAccount | null>(null);
 
   const fetchAccounts = async () => {
     try {
@@ -143,6 +162,89 @@ export const AccountingPage: React.FC = () => {
     }
   };
 
+  const handleCreateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAccCode.trim() || !newAccName.trim()) {
+      alert("Please provide account code and title");
+      return;
+    }
+    try {
+      const res = await api.post("/accounting/accounts", {
+        code: newAccCode.trim(),
+        name: newAccName.trim(),
+        type: newAccType,
+        subType: newAccSubType,
+        description: newAccDesc || undefined,
+      });
+      if (res.data.success) {
+        setShowAccountModal(false);
+        setNewAccCode("");
+        setNewAccName("");
+        setNewAccDesc("");
+        await fetchAccounts();
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to create account");
+    }
+  };
+
+  const handleOpenEditAccount = (acc: IAccount) => {
+    setEditingAccount(acc);
+    setEditAccName(acc.name);
+    setEditAccType(acc.type);
+    setEditAccDesc(acc.description || "");
+  };
+
+  const handleUpdateAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAccount) return;
+    try {
+      const res = await api.put(`/accounting/accounts/${editingAccount._id}`, {
+        name: editAccName,
+        type: editAccType,
+        description: editAccDesc || undefined,
+      });
+      if (res.data.success) {
+        setEditingAccount(null);
+        await fetchAccounts();
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to update account");
+    }
+  };
+
+  const handleDeleteAccount = async (acc: IAccount) => {
+    if (!window.confirm(`Are you sure you want to delete account "${acc.code} - ${acc.name}"?`)) {
+      return;
+    }
+    try {
+      const res = await api.delete(`/accounting/accounts/${acc._id}`);
+      if (res.data.success) {
+        await fetchAccounts();
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to delete account");
+    }
+  };
+
+  const handleDeleteJournal = async (id: string, entryNo: string) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to void and delete manual journal entry ${entryNo}? All account balance changes will be reversed automatically.`
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await api.delete(`/accounting/journals/${id}`);
+      if (res.data.success) {
+        await Promise.all([fetchAccounts(), fetchJournals(), fetchLedger()]);
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to delete journal entry");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -156,13 +258,22 @@ export const AccountingPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowJournalModal(true)}
-          className="flex items-center gap-2 bg-brand-navy hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition border border-brand-gold/40 hover:border-brand-gold"
-        >
-          <PlusCircle className="w-4 h-4 text-brand-gold" />
-          <span>New Journal Entry</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAccountModal(true)}
+            className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 px-3.5 py-2 rounded-lg text-xs font-bold shadow-sm transition"
+          >
+            <Plus className="w-4 h-4 text-slate-700" />
+            <span>Add GL Account</span>
+          </button>
+          <button
+            onClick={() => setShowJournalModal(true)}
+            className="flex items-center gap-2 bg-brand-navy hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition border border-brand-gold/40 hover:border-brand-gold"
+          >
+            <PlusCircle className="w-4 h-4 text-brand-gold" />
+            <span>New Journal Entry</span>
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -212,13 +323,19 @@ export const AccountingPage: React.FC = () => {
                 <th className="py-3 px-4">Type</th>
                 <th className="py-3 px-4">Sub-Type</th>
                 <th className="py-3 px-4 text-right">Current Balance (AED)</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {accounts.map((acc) => (
                 <tr key={acc.code} className="hover:bg-slate-50/80 transition">
-                  <td className="py-3 px-4 font-mono font-bold text-slate-800">
-                    {acc.code}
+                  <td className="py-3 px-4 font-mono font-bold text-slate-800 flex items-center gap-2">
+                    <span>{acc.code}</span>
+                    {acc.isSystem && (
+                      <span className="text-[9px] bg-slate-100 text-slate-500 font-semibold px-1.5 py-0.5 rounded">
+                        SYSTEM
+                      </span>
+                    )}
                   </td>
                   <td className="py-3 px-4 font-semibold text-slate-900">
                     {acc.name}
@@ -245,6 +362,33 @@ export const AccountingPage: React.FC = () => {
                   </td>
                   <td className="py-3 px-4 text-right font-mono font-bold text-slate-900 text-sm">
                     {formatAed(acc.currentBalanceFils)}
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => setViewingAccount(acc)}
+                        className="p-1.5 text-slate-500 hover:text-brand-navy hover:bg-slate-100 rounded transition"
+                        title="View Details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleOpenEditAccount(acc)}
+                        className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded transition"
+                        title="Edit Account"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      {!acc.isSystem && (
+                        <button
+                          onClick={() => handleDeleteAccount(acc)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
+                          title="Delete Account"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -280,6 +424,15 @@ export const AccountingPage: React.FC = () => {
                   <span className="text-[11px] font-mono font-bold text-emerald-700">
                     Balanced: {formatAed(entry.totalDebitFils)} AED
                   </span>
+                  {entry.sourceDocumentType === "MANUAL" && (
+                    <button
+                      onClick={() => handleDeleteJournal(entry._id, entry.entryNumber)}
+                      className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition ml-1"
+                      title="Void & Delete Journal Entry"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -543,6 +696,289 @@ export const AccountingPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Account Modal */}
+      {showAccountModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-6 animate-in fade-in zoom-in-95 text-xs">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200 mb-4">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <PlusCircle className="w-4 h-4 text-brand-gold" />
+                <span>Add Chart of Account</span>
+              </h3>
+              <button onClick={() => setShowAccountModal(false)} className="text-slate-400 hover:text-slate-700">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateAccount} className="space-y-3.5">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Account Code *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. 5080"
+                    value={newAccCode}
+                    onChange={(e) => setNewAccCode(e.target.value)}
+                    className="w-full font-mono font-bold border border-slate-300 rounded-lg p-2"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Account Type *
+                  </label>
+                  <select
+                    value={newAccType}
+                    onChange={(e) => {
+                      const t = e.target.value as AccountType;
+                      setNewAccType(t);
+                      if (t === AccountType.ASSET) setNewAccSubType(AccountSubType.CURRENT_ASSET);
+                      else if (t === AccountType.LIABILITY) setNewAccSubType(AccountSubType.ACCOUNTS_PAYABLE);
+                      else if (t === AccountType.EQUITY) setNewAccSubType(AccountSubType.OWNERS_EQUITY);
+                      else if (t === AccountType.REVENUE) setNewAccSubType(AccountSubType.OPERATING_REVENUE);
+                      else setNewAccSubType(AccountSubType.OPERATING_EXPENSE);
+                    }}
+                    className="w-full border border-slate-300 rounded-lg p-2 bg-slate-50"
+                  >
+                    <option value={AccountType.ASSET}>ASSET</option>
+                    <option value={AccountType.LIABILITY}>LIABILITY</option>
+                    <option value={AccountType.EQUITY}>EQUITY</option>
+                    <option value={AccountType.REVENUE}>REVENUE</option>
+                    <option value={AccountType.EXPENSE}>EXPENSE</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Account Title / Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Software Licenses & Subscriptions"
+                  value={newAccName}
+                  onChange={(e) => setNewAccName(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg p-2"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Sub-Type *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newAccSubType}
+                  onChange={(e) => setNewAccSubType(e.target.value as AccountSubType)}
+                  className="w-full border border-slate-300 rounded-lg p-2 font-mono text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Description / Purpose (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={newAccDesc}
+                  onChange={(e) => setNewAccDesc(e.target.value)}
+                  placeholder="Accounting notes..."
+                  className="w-full border border-slate-300 rounded-lg p-2"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAccountModal(false)}
+                  className="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-brand-navy hover:bg-slate-900 text-white font-bold rounded-lg shadow-sm"
+                >
+                  Create Account
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Account Modal */}
+      {editingAccount && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-6 animate-in fade-in zoom-in-95 text-xs">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-200 mb-4">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-brand-gold" />
+                <span>Edit Account ({editingAccount.code})</span>
+              </h3>
+              <button
+                onClick={() => setEditingAccount(null)}
+                className="text-slate-400 hover:text-slate-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateAccount} className="space-y-3.5">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Account Code
+                </label>
+                <input
+                  type="text"
+                  disabled
+                  value={editingAccount.code}
+                  className="w-full font-mono font-bold border border-slate-200 bg-slate-100 rounded-lg p-2 text-slate-500 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Account Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editAccName}
+                  onChange={(e) => setEditAccName(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-gold focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Account Type *
+                </label>
+                <select
+                  value={editAccType}
+                  onChange={(e) => setEditAccType(e.target.value as AccountType)}
+                  className="w-full border border-slate-300 rounded-lg p-2 bg-slate-50 focus:ring-2 focus:ring-brand-gold focus:outline-none"
+                >
+                  <option value={AccountType.ASSET}>ASSET</option>
+                  <option value={AccountType.LIABILITY}>LIABILITY</option>
+                  <option value={AccountType.EQUITY}>EQUITY</option>
+                  <option value={AccountType.REVENUE}>REVENUE</option>
+                  <option value={AccountType.EXPENSE}>EXPENSE</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  rows={2}
+                  value={editAccDesc}
+                  onChange={(e) => setEditAccDesc(e.target.value)}
+                  className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-gold focus:outline-none"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingAccount(null)}
+                  className="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-brand-navy hover:bg-slate-900 text-white font-bold rounded-lg shadow-sm"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Account Modal */}
+      {viewingAccount && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-6 animate-in fade-in zoom-in-95 text-xs">
+            <div className="flex justify-between items-start border-b border-slate-200 pb-3 mb-4">
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">
+                  {viewingAccount.code} - {viewingAccount.name}
+                </h3>
+                <p className="text-[10px] text-slate-500 mt-0.5">
+                  Chart of Account Master Profile
+                </p>
+              </div>
+              <button
+                onClick={() => setViewingAccount(null)}
+                className="text-slate-400 hover:text-slate-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2 mb-4 font-mono text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Account Code:</span>
+                <span className="font-bold text-slate-900">{viewingAccount.code}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Classification:</span>
+                <span className="font-bold text-brand-navy">{viewingAccount.type}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">Sub-Type:</span>
+                <span className="text-slate-700">{viewingAccount.subType}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-sans">System Account:</span>
+                <span className="font-semibold text-slate-700">
+                  {viewingAccount.isSystem ? "Yes (Protected)" : "No (User-created)"}
+                </span>
+              </div>
+              {viewingAccount.description && (
+                <div className="pt-2 border-t border-slate-200 font-sans text-slate-600">
+                  <span className="font-semibold block mb-1">Notes / Description:</span>
+                  <p>{viewingAccount.description}</p>
+                </div>
+              )}
+              <div className="flex justify-between border-t border-slate-200 pt-2 text-sm">
+                <span className="text-slate-900 font-sans font-bold">Current Net Balance:</span>
+                <span className="font-bold text-emerald-700">
+                  {formatAed(viewingAccount.currentBalanceFils)} AED
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  const acc = viewingAccount;
+                  setViewingAccount(null);
+                  handleOpenEditAccount(acc);
+                }}
+                className="px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold rounded-lg"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => setViewingAccount(null)}
+                className="px-4 py-2 bg-brand-navy text-white font-bold rounded-lg"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

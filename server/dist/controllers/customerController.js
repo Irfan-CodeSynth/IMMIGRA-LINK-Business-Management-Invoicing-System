@@ -5,6 +5,7 @@ exports.getCustomer = getCustomer;
 exports.createCustomer = createCustomer;
 exports.updateCustomer = updateCustomer;
 exports.toggleCustomerStatus = toggleCustomerStatus;
+exports.deleteCustomer = deleteCustomer;
 const Customer_1 = require("../models/Customer");
 const Invoice_1 = require("../models/Invoice");
 const Payment_1 = require("../models/Payment");
@@ -145,6 +146,41 @@ async function toggleCustomerStatus(req, res) {
         customer.isActive = !customer.isActive;
         await customer.save();
         res.json({ success: true, data: customer });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function deleteCustomer(req, res) {
+    try {
+        const customer = await Customer_1.CustomerModel.findById(req.params.id);
+        if (!customer) {
+            res.status(404).json({ success: false, message: "Customer not found" });
+            return;
+        }
+        const invoiceCount = await Invoice_1.InvoiceModel.countDocuments({ customerId: customer._id });
+        if (invoiceCount > 0) {
+            customer.isActive = false;
+            await customer.save();
+            res.json({
+                success: true,
+                message: `Customer "${customer.displayName}" has ${invoiceCount} linked invoice(s). Safely archived customer to preserve fiscal audit trail.`,
+                data: customer,
+            });
+            return;
+        }
+        await Customer_1.CustomerModel.findByIdAndDelete(customer._id);
+        if (req.user) {
+            await AuditLog_1.AuditLogModel.create({
+                userId: req.user.userId,
+                userName: req.user.name,
+                action: "DELETE_CUSTOMER",
+                entityType: "CUSTOMER",
+                entityId: customer._id.toString(),
+                details: { displayName: customer.displayName, referenceNumber: customer.referenceNumber },
+            });
+        }
+        res.json({ success: true, message: "Customer deleted successfully", data: customer });
     }
     catch (error) {
         res.status(500).json({ success: false, message: error.message });

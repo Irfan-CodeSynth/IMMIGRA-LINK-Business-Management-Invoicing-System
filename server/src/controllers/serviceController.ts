@@ -84,6 +84,19 @@ export async function updateService(req: AuthenticatedRequest, res: Response): P
   }
 }
 
+export async function getService(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const service = await ServiceModel.findById(req.params.id);
+    if (!service) {
+      res.status(404).json({ success: false, message: "Service not found" });
+      return;
+    }
+    res.json({ success: true, data: service });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
 export async function toggleServiceStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const service = await ServiceModel.findById(req.params.id);
@@ -96,6 +109,21 @@ export async function toggleServiceStatus(req: AuthenticatedRequest, res: Respon
     await service.save();
 
     res.json({ success: true, data: service });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function deleteService(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const service = await ServiceModel.findById(req.params.id);
+    if (!service) {
+      res.status(404).json({ success: false, message: "Service not found" });
+      return;
+    }
+
+    await ServiceModel.findByIdAndDelete(service._id);
+    res.json({ success: true, message: `Service "${service.name}" deleted successfully`, data: service });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

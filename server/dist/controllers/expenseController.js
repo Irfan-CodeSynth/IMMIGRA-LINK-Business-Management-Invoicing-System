@@ -2,6 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.listExpenses = listExpenses;
 exports.createExpense = createExpense;
+exports.getExpense = getExpense;
+exports.updateExpense = updateExpense;
+exports.deleteExpense = deleteExpense;
 const Expense_1 = require("../models/Expense");
 const Sequence_1 = require("../models/Sequence");
 const financialService_1 = require("../services/financialService");
@@ -70,6 +73,78 @@ async function createExpense(req, res) {
             });
         }
         res.status(201).json({ success: true, data: expense });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function getExpense(req, res) {
+    try {
+        const expense = await Expense_1.ExpenseModel.findById(req.params.id);
+        if (!expense) {
+            res.status(404).json({ success: false, message: "Expense voucher not found" });
+            return;
+        }
+        res.json({ success: true, data: expense });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function updateExpense(req, res) {
+    try {
+        const expense = await Expense_1.ExpenseModel.findById(req.params.id);
+        if (!expense) {
+            res.status(404).json({ success: false, message: "Expense not found" });
+            return;
+        }
+        const { payee, category, notes, paymentMethod, referenceNumber } = req.body;
+        if (payee !== undefined)
+            expense.payee = payee;
+        if (category !== undefined)
+            expense.category = category;
+        if (notes !== undefined)
+            expense.notes = notes;
+        if (paymentMethod !== undefined)
+            expense.paymentMethod = paymentMethod;
+        if (referenceNumber !== undefined)
+            expense.referenceNumber = referenceNumber;
+        await expense.save();
+        if (req.user) {
+            await AuditLog_1.AuditLogModel.create({
+                userId: req.user.userId,
+                userName: req.user.name,
+                action: "UPDATE_EXPENSE",
+                entityType: "EXPENSE",
+                entityId: expense._id.toString(),
+                details: { expenseNumber: expense.expenseNumber },
+            });
+        }
+        res.json({ success: true, data: expense });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function deleteExpense(req, res) {
+    try {
+        const expense = await Expense_1.ExpenseModel.findById(req.params.id);
+        if (!expense) {
+            res.status(404).json({ success: false, message: "Expense not found" });
+            return;
+        }
+        await Expense_1.ExpenseModel.findByIdAndDelete(expense._id);
+        if (req.user) {
+            await AuditLog_1.AuditLogModel.create({
+                userId: req.user.userId,
+                userName: req.user.name,
+                action: "DELETE_EXPENSE",
+                entityType: "EXPENSE",
+                entityId: expense._id.toString(),
+                details: { expenseNumber: expense.expenseNumber, payee: expense.payee },
+            });
+        }
+        res.json({ success: true, message: `Expense voucher "${expense.expenseNumber}" deleted successfully`, data: expense });
     }
     catch (error) {
         res.status(500).json({ success: false, message: error.message });

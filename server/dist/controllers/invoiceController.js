@@ -10,6 +10,8 @@ exports.createInvoice = createInvoice;
 exports.issueDraftInvoice = issueDraftInvoice;
 exports.voidInvoice = voidInvoice;
 exports.verifyInvoiceByHash = verifyInvoiceByHash;
+exports.updateInvoice = updateInvoice;
+exports.deleteInvoice = deleteInvoice;
 const crypto_1 = __importDefault(require("crypto"));
 const Invoice_1 = require("../models/Invoice");
 const Customer_1 = require("../models/Customer");
@@ -323,6 +325,103 @@ async function verifyInvoiceByHash(req, res) {
                 verifiedAt: new Date(),
             },
         });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function updateInvoice(req, res) {
+    try {
+        const invoice = await Invoice_1.InvoiceModel.findById(req.params.id);
+        if (!invoice) {
+            res.status(404).json({ success: false, message: "Invoice not found" });
+            return;
+        }
+        const { notes, paymentTerms, dueDate, referenceNote, items } = req.body;
+        if (invoice.status === shared_1.InvoiceStatus.DRAFT && items && Array.isArray(items)) {
+            let subtotalFils = 0;
+            let totalDiscountFils = 0;
+            const calculatedItems = items.map((item) => {
+                const unitRateFils = (0, shared_1.aedToFils)(item.unitRateAed || 0);
+                const discountFils = (0, shared_1.aedToFils)(item.discountAed || 0);
+                const lineTotalFils = Math.max(0, (item.quantity || 1) * unitRateFils - discountFils);
+                subtotalFils += (item.quantity || 1) * unitRateFils;
+                totalDiscountFils += discountFils;
+                return {
+                    serviceId: item.serviceId,
+                    serviceName: item.serviceName,
+                    description: item.description || "",
+                    quantity: item.quantity || 1,
+                    unitRateFils,
+                    discountFils,
+                    lineTotalFils,
+                };
+            });
+            const grandTotalFils = Math.max(0, subtotalFils - totalDiscountFils);
+            invoice.items = calculatedItems;
+            invoice.subtotalFils = subtotalFils;
+            invoice.discountFils = totalDiscountFils;
+            invoice.grandTotalFils = grandTotalFils;
+            invoice.dueAmountFils = Math.max(0, grandTotalFils - invoice.paidAmountFils);
+            invoice.amountInWords = (0, shared_1.numberToAedWords)(grandTotalFils, true);
+        }
+        if (notes !== undefined)
+            invoice.notes = notes;
+        if (paymentTerms !== undefined)
+            invoice.paymentTerms = paymentTerms;
+        if (referenceNote !== undefined)
+            invoice.referenceNote = referenceNote;
+        if (dueDate)
+            invoice.dueDate = new Date(dueDate);
+        await invoice.save();
+        if (req.user) {
+            await AuditLog_1.AuditLogModel.create({
+                userId: req.user.userId,
+                userName: req.user.name,
+                action: "UPDATE_INVOICE",
+                entityType: "INVOICE",
+                entityId: invoice._id.toString(),
+                details: { invoiceNumber: invoice.invoiceNumber },
+            });
+        }
+        res.json({ success: true, data: invoice });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function deleteInvoice(req, res) {
+    try {
+        const invoice = await Invoice_1.InvoiceModel.findById(req.params.id);
+        if (!invoice) {
+            res.status(404).json({ success: false, message: "Invoice not found" });
+            return;
+        }
+        if (invoice.paidAmountFils > 0) {
+            res.status(400).json({
+                success: false,
+                message: `Cannot delete invoice ${invoice.invoiceNumber} because AED ${(invoice.paidAmountFils / 100).toFixed(2)} in payments have been recorded. Void the payments first.`,
+            });
+            return;
+        }
+        if (invoice.status === shared_1.InvoiceStatus.ISSUED) {
+            // Revert customer balance
+            await Customer_1.CustomerModel.findByIdAndUpdate(invoice.customerId, {
+                $inc: { balanceFils: -invoice.grandTotalFils },
+            });
+        }
+        await Invoice_1.InvoiceModel.findByIdAndDelete(invoice._id);
+        if (req.user) {
+            await AuditLog_1.AuditLogModel.create({
+                userId: req.user.userId,
+                userName: req.user.name,
+                action: "DELETE_INVOICE",
+                entityType: "INVOICE",
+                entityId: invoice._id.toString(),
+                details: { invoiceNumber: invoice.invoiceNumber },
+            });
+        }
+        res.json({ success: true, message: `Invoice "${invoice.invoiceNumber}" deleted successfully`, data: invoice });
     }
     catch (error) {
         res.status(500).json({ success: false, message: error.message });

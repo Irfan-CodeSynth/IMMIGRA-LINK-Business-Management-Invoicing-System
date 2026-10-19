@@ -130,3 +130,72 @@ export async function createPayment(req: AuthenticatedRequest, res: Response): P
     res.status(500).json({ success: false, message: error.message });
   }
 }
+
+export async function updatePayment(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const payment = await PaymentModel.findById(req.params.id);
+    if (!payment) {
+      res.status(404).json({ success: false, message: "Payment not found" });
+      return;
+    }
+
+    const { notes, referenceNumber, paymentMethod } = req.body;
+    if (notes !== undefined) payment.notes = notes;
+    if (referenceNumber !== undefined) payment.referenceNumber = referenceNumber;
+    if (paymentMethod !== undefined) payment.paymentMethod = paymentMethod;
+
+    await payment.save();
+    res.json({ success: true, data: payment });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function deletePayment(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const payment = await PaymentModel.findById(req.params.id);
+    if (!payment) {
+      res.status(404).json({ success: false, message: "Payment not found" });
+      return;
+    }
+
+    // Rollback allocations from invoices
+    if (payment.allocations && payment.allocations.length > 0) {
+      for (const alloc of payment.allocations) {
+        const inv = await InvoiceModel.findById(alloc.invoiceId);
+        if (inv) {
+          inv.paidAmountFils = Math.max(0, inv.paidAmountFils - alloc.allocatedAmountFils);
+          inv.dueAmountFils = Math.max(0, inv.grandTotalFils - inv.paidAmountFils);
+          if (inv.paidAmountFils === 0) {
+            inv.status = "ISSUED" as any;
+          } else if (inv.dueAmountFils > 0) {
+            inv.status = "PARTIALLY_PAID" as any;
+          }
+          await inv.save();
+        }
+      }
+    }
+
+    // Rollback customer balance
+    await CustomerModel.findByIdAndUpdate(payment.customerId, {
+      $inc: { balanceFils: payment.amountFils },
+    });
+
+    await PaymentModel.findByIdAndDelete(payment._id);
+
+    if (req.user) {
+      await AuditLogModel.create({
+        userId: req.user.userId,
+        userName: req.user.name,
+        action: "DELETE_PAYMENT",
+        entityType: "PAYMENT",
+        entityId: payment._id.toString(),
+        details: { receiptNumber: payment.receiptNumber, amountFils: payment.amountFils },
+      });
+    }
+
+    res.json({ success: true, message: `Payment receipt "${payment.receiptNumber}" deleted and ledger rolled back successfully`, data: payment });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}

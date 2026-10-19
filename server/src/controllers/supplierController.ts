@@ -27,6 +27,19 @@ export async function createSupplier(req: AuthenticatedRequest, res: Response): 
   }
 }
 
+export async function getSupplier(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const supplier = await SupplierModel.findById(req.params.id);
+    if (!supplier) {
+      res.status(404).json({ success: false, message: "Supplier not found" });
+      return;
+    }
+    res.json({ success: true, data: supplier });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
 export async function updateSupplier(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
     const parsed = SupplierSchema.safeParse(req.body);
@@ -46,6 +59,21 @@ export async function updateSupplier(req: AuthenticatedRequest, res: Response): 
     }
 
     res.json({ success: true, data: supplier });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function deleteSupplier(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const supplier = await SupplierModel.findById(req.params.id);
+    if (!supplier) {
+      res.status(404).json({ success: false, message: "Supplier not found" });
+      return;
+    }
+
+    await SupplierModel.findByIdAndDelete(supplier._id);
+    res.json({ success: true, message: `Supplier "${supplier.supplierName}" deleted successfully`, data: supplier });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }

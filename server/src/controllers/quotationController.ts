@@ -198,3 +198,72 @@ export async function convertQuotationToInvoice(req: AuthenticatedRequest, res: 
     res.status(500).json({ success: false, message: error.message });
   }
 }
+
+export async function updateQuotation(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const quotation = await QuotationModel.findById(req.params.id);
+    if (!quotation) {
+      res.status(404).json({ success: false, message: "Quotation not found" });
+      return;
+    }
+
+    if (quotation.status === QuotationStatus.CONVERTED) {
+      res.status(400).json({ success: false, message: "Cannot edit a quotation that has already been converted to an invoice" });
+      return;
+    }
+
+    const { status, items, notes, termsAndConditions, expiryDate } = req.body;
+
+    if (items && Array.isArray(items)) {
+      let subtotalFils = 0;
+      let totalDiscountFils = 0;
+      const calculatedItems = items.map((item: any) => {
+        const unitRateFils = aedToFils(item.unitRateAed || 0);
+        const discountFils = aedToFils(item.discountAed || 0);
+        const lineTotalFils = Math.max(0, (item.quantity || 1) * unitRateFils - discountFils);
+        subtotalFils += (item.quantity || 1) * unitRateFils;
+        totalDiscountFils += discountFils;
+        return {
+          serviceId: item.serviceId,
+          serviceName: item.serviceName,
+          description: item.description || "",
+          quantity: item.quantity || 1,
+          unitRateFils,
+          discountFils,
+          lineTotalFils,
+        };
+      });
+      const grandTotalFils = Math.max(0, subtotalFils - totalDiscountFils);
+      quotation.items = calculatedItems as any;
+      quotation.subtotalFils = subtotalFils;
+      quotation.discountFils = totalDiscountFils;
+      quotation.grandTotalFils = grandTotalFils;
+      quotation.amountInWords = numberToAedWords(grandTotalFils, true);
+    }
+
+    if (status) quotation.status = status;
+    if (notes !== undefined) quotation.notes = notes;
+    if (termsAndConditions !== undefined) quotation.termsAndConditions = termsAndConditions;
+    if (expiryDate) quotation.expiryDate = new Date(expiryDate);
+
+    await quotation.save();
+    res.json({ success: true, data: quotation });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export async function deleteQuotation(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const quotation = await QuotationModel.findById(req.params.id);
+    if (!quotation) {
+      res.status(404).json({ success: false, message: "Quotation not found" });
+      return;
+    }
+
+    await QuotationModel.findByIdAndDelete(quotation._id);
+    res.json({ success: true, message: `Quotation "${quotation.quotationNumber}" deleted successfully`, data: quotation });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}

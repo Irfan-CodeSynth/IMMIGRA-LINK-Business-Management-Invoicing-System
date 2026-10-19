@@ -7,6 +7,10 @@ exports.getTrialBalance = getTrialBalance;
 exports.getProfitAndLoss = getProfitAndLoss;
 exports.getBalanceSheet = getBalanceSheet;
 exports.createManualJournalEntry = createManualJournalEntry;
+exports.createAccount = createAccount;
+exports.updateAccount = updateAccount;
+exports.deleteAccount = deleteAccount;
+exports.deleteJournalEntry = deleteJournalEntry;
 const Account_1 = require("../models/Account");
 const JournalEntry_1 = require("../models/JournalEntry");
 const Sequence_1 = require("../models/Sequence");
@@ -319,6 +323,108 @@ async function createManualJournalEntry(req, res) {
             });
         }
         res.status(201).json({ success: true, data: entry });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function createAccount(req, res) {
+    try {
+        const { code, name, type, description } = req.body;
+        if (!code || !name || !type) {
+            res.status(400).json({ success: false, message: "Code, name, and account type are required" });
+            return;
+        }
+        const existing = await Account_1.AccountModel.findOne({ code });
+        if (existing) {
+            res.status(400).json({ success: false, message: `Account with code ${code} already exists` });
+            return;
+        }
+        const account = await Account_1.AccountModel.create({
+            code,
+            name,
+            type,
+            subType: "OTHER_CURRENT_ASSET",
+            description: description || "",
+            currentBalanceFils: 0,
+            isSystem: false,
+        });
+        res.status(201).json({ success: true, data: account });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function updateAccount(req, res) {
+    try {
+        const { name, type, description } = req.body;
+        const account = await Account_1.AccountModel.findById(req.params.id);
+        if (!account) {
+            res.status(404).json({ success: false, message: "Account not found" });
+            return;
+        }
+        if (name !== undefined)
+            account.name = name;
+        if (type !== undefined)
+            account.type = type;
+        if (description !== undefined)
+            account.description = description;
+        await account.save();
+        res.json({ success: true, data: account });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function deleteAccount(req, res) {
+    try {
+        const account = await Account_1.AccountModel.findById(req.params.id);
+        if (!account) {
+            res.status(404).json({ success: false, message: "Account not found" });
+            return;
+        }
+        if (account.isSystem) {
+            res.status(400).json({
+                success: false,
+                message: `Cannot delete default UAE system account "${account.code} - ${account.name}".`,
+            });
+            return;
+        }
+        if (account.currentBalanceFils !== 0) {
+            res.status(400).json({
+                success: false,
+                message: `Cannot delete account ${account.code} (${account.name}) with non-zero balance (AED ${(account.currentBalanceFils / 100).toFixed(2)}).`,
+            });
+            return;
+        }
+        await Account_1.AccountModel.findByIdAndDelete(account._id);
+        res.json({ success: true, message: `Account "${account.code} - ${account.name}" deleted successfully`, data: account });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function deleteJournalEntry(req, res) {
+    try {
+        const entry = await JournalEntry_1.JournalEntryModel.findById(req.params.id);
+        if (!entry) {
+            res.status(404).json({ success: false, message: "Journal entry not found" });
+            return;
+        }
+        if (entry.sourceDocumentType !== "MANUAL") {
+            res.status(400).json({
+                success: false,
+                message: `Cannot delete system-generated journal entry linked to ${entry.sourceDocumentType}. Delete or void the source transaction directly.`,
+            });
+            return;
+        }
+        // Reverse balances on accounts
+        for (const line of entry.lines) {
+            const delta = line.debitFils - line.creditFils;
+            await Account_1.AccountModel.findOneAndUpdate({ code: line.accountCode }, { $inc: { currentBalanceFils: -delta } });
+        }
+        await JournalEntry_1.JournalEntryModel.findByIdAndDelete(entry._id);
+        res.json({ success: true, message: `Manual journal entry "${entry.entryNumber}" voided and deleted successfully`, data: entry });
     }
     catch (error) {
         res.status(500).json({ success: false, message: error.message });

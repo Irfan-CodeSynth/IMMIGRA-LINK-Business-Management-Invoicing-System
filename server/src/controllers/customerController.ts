@@ -164,3 +164,42 @@ export async function toggleCustomerStatus(req: AuthenticatedRequest, res: Respo
     res.status(500).json({ success: false, message: error.message });
   }
 }
+
+export async function deleteCustomer(req: AuthenticatedRequest, res: Response): Promise<void> {
+  try {
+    const customer = await CustomerModel.findById(req.params.id);
+    if (!customer) {
+      res.status(404).json({ success: false, message: "Customer not found" });
+      return;
+    }
+
+    const invoiceCount = await InvoiceModel.countDocuments({ customerId: customer._id });
+    if (invoiceCount > 0) {
+      customer.isActive = false;
+      await customer.save();
+      res.json({
+        success: true,
+        message: `Customer "${customer.displayName}" has ${invoiceCount} linked invoice(s). Safely archived customer to preserve fiscal audit trail.`,
+        data: customer,
+      });
+      return;
+    }
+
+    await CustomerModel.findByIdAndDelete(customer._id);
+
+    if (req.user) {
+      await AuditLogModel.create({
+        userId: req.user.userId,
+        userName: req.user.name,
+        action: "DELETE_CUSTOMER",
+        entityType: "CUSTOMER",
+        entityId: customer._id.toString(),
+        details: { displayName: customer.displayName, referenceNumber: customer.referenceNumber },
+      });
+    }
+
+    res.json({ success: true, message: "Customer deleted successfully", data: customer });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+}

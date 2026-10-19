@@ -3,7 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.listServices = listServices;
 exports.createService = createService;
 exports.updateService = updateService;
+exports.getService = getService;
 exports.toggleServiceStatus = toggleServiceStatus;
+exports.deleteService = deleteService;
 const Service_1 = require("../models/Service");
 const shared_1 = require("@immigra/shared");
 const shared_2 = require("@immigra/shared");
@@ -74,6 +76,19 @@ async function updateService(req, res) {
         res.status(500).json({ success: false, message: error.message });
     }
 }
+async function getService(req, res) {
+    try {
+        const service = await Service_1.ServiceModel.findById(req.params.id);
+        if (!service) {
+            res.status(404).json({ success: false, message: "Service not found" });
+            return;
+        }
+        res.json({ success: true, data: service });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
 async function toggleServiceStatus(req, res) {
     try {
         const service = await Service_1.ServiceModel.findById(req.params.id);
@@ -84,6 +99,20 @@ async function toggleServiceStatus(req, res) {
         service.isActive = !service.isActive;
         await service.save();
         res.json({ success: true, data: service });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function deleteService(req, res) {
+    try {
+        const service = await Service_1.ServiceModel.findById(req.params.id);
+        if (!service) {
+            res.status(404).json({ success: false, message: "Service not found" });
+            return;
+        }
+        await Service_1.ServiceModel.findByIdAndDelete(service._id);
+        res.json({ success: true, message: `Service "${service.name}" deleted successfully`, data: service });
     }
     catch (error) {
         res.status(500).json({ success: false, message: error.message });

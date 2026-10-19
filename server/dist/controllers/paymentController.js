@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.listPayments = listPayments;
 exports.getPayment = getPayment;
 exports.createPayment = createPayment;
+exports.updatePayment = updatePayment;
+exports.deletePayment = deletePayment;
 const Payment_1 = require("../models/Payment");
 const Customer_1 = require("../models/Customer");
 const Invoice_1 = require("../models/Invoice");
@@ -115,6 +117,72 @@ async function createPayment(req, res) {
             });
         }
         res.status(201).json({ success: true, data: payment });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function updatePayment(req, res) {
+    try {
+        const payment = await Payment_1.PaymentModel.findById(req.params.id);
+        if (!payment) {
+            res.status(404).json({ success: false, message: "Payment not found" });
+            return;
+        }
+        const { notes, referenceNumber, paymentMethod } = req.body;
+        if (notes !== undefined)
+            payment.notes = notes;
+        if (referenceNumber !== undefined)
+            payment.referenceNumber = referenceNumber;
+        if (paymentMethod !== undefined)
+            payment.paymentMethod = paymentMethod;
+        await payment.save();
+        res.json({ success: true, data: payment });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+async function deletePayment(req, res) {
+    try {
+        const payment = await Payment_1.PaymentModel.findById(req.params.id);
+        if (!payment) {
+            res.status(404).json({ success: false, message: "Payment not found" });
+            return;
+        }
+        // Rollback allocations from invoices
+        if (payment.allocations && payment.allocations.length > 0) {
+            for (const alloc of payment.allocations) {
+                const inv = await Invoice_1.InvoiceModel.findById(alloc.invoiceId);
+                if (inv) {
+                    inv.paidAmountFils = Math.max(0, inv.paidAmountFils - alloc.allocatedAmountFils);
+                    inv.dueAmountFils = Math.max(0, inv.grandTotalFils - inv.paidAmountFils);
+                    if (inv.paidAmountFils === 0) {
+                        inv.status = "ISSUED";
+                    }
+                    else if (inv.dueAmountFils > 0) {
+                        inv.status = "PARTIALLY_PAID";
+                    }
+                    await inv.save();
+                }
+            }
+        }
+        // Rollback customer balance
+        await Customer_1.CustomerModel.findByIdAndUpdate(payment.customerId, {
+            $inc: { balanceFils: payment.amountFils },
+        });
+        await Payment_1.PaymentModel.findByIdAndDelete(payment._id);
+        if (req.user) {
+            await AuditLog_1.AuditLogModel.create({
+                userId: req.user.userId,
+                userName: req.user.name,
+                action: "DELETE_PAYMENT",
+                entityType: "PAYMENT",
+                entityId: payment._id.toString(),
+                details: { receiptNumber: payment.receiptNumber, amountFils: payment.amountFils },
+            });
+        }
+        res.json({ success: true, message: `Payment receipt "${payment.receiptNumber}" deleted and ledger rolled back successfully`, data: payment });
     }
     catch (error) {
         res.status(500).json({ success: false, message: error.message });

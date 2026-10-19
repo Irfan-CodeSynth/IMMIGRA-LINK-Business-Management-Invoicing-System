@@ -13,6 +13,9 @@ import {
   ChevronRight,
   X,
   CheckCircle,
+  Eye,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 
 export const CustomersPage: React.FC = () => {
@@ -134,6 +137,21 @@ export const CustomersPage: React.FC = () => {
       alert(err.response?.data?.message || "Failed to save customer");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteCustomer = async (c: ICustomer) => {
+    if (!window.confirm(`Are you sure you want to delete customer "${c.displayName}"?`)) {
+      return;
+    }
+    try {
+      const res = await api.delete(`/customers/${c._id}`);
+      if (res.data?.message) {
+        alert(res.data.message);
+      }
+      await fetchCustomers();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to delete customer");
     }
   };
 
@@ -286,20 +304,33 @@ export const CustomersPage: React.FC = () => {
                         {formatAed(c.balanceFils)}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right space-x-2">
-                      <button
-                        onClick={() => openEditModal(c)}
-                        className="text-slate-500 hover:text-slate-800 text-xs font-semibold"
-                      >
-                        Edit
-                      </button>
-                      <Link
-                        to={`/customers/${c._id}`}
-                        className="inline-flex items-center text-brand-royal hover:underline text-xs font-semibold"
-                      >
-                        <span>Profile</span>
-                        <ChevronRight className="w-3 h-3" />
-                      </Link>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          to={`/customers/${c._id}`}
+                          title="View Profile & Statements"
+                          className="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 inline-flex items-center gap-1 font-semibold text-[11px] transition shadow-xs"
+                        >
+                          <Eye className="w-3 h-3 text-slate-500" />
+                          <span>View</span>
+                        </Link>
+                        <button
+                          onClick={() => openEditModal(c)}
+                          title="Edit Customer"
+                          className="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 inline-flex items-center gap-1 font-semibold text-[11px] transition shadow-xs"
+                        >
+                          <Edit2 className="w-3 h-3 text-blue-600" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCustomer(c)}
+                          title="Delete / Archive Customer"
+                          className="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 inline-flex items-center gap-1 font-semibold text-[11px] transition shadow-xs"
+                        >
+                          <Trash2 className="w-3 h-3 text-rose-600" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
