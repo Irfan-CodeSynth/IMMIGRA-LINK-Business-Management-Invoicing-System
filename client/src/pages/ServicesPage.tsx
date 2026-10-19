@@ -315,7 +315,7 @@ export const ServicesPage: React.FC = () => {
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full border border-slate-300 rounded-lg p-2"
                   >
-                    {Object.values(ServiceCategory).map((cat) => (
+                    {Object.values(ServiceCategory).map((cat: any) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>

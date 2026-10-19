@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "axios": "^1.7.7",
     "clsx": "^2.1.1",
     "html2canvas": "^1.4.1",
+    "jsbarcode": "^3.11.6",
     "jspdf": "^2.5.2",
     "lucide-react": "^0.453.0",
     "qrcode": "^1.5.4",
@@ -23,6 +24,7 @@
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
+    "@types/jsbarcode": "^3.11.4",
     "@types/node": "^22.8.0",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.11",

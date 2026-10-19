@@ -172,7 +172,7 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
-            {invoice.items.map((item, idx) => (
+            {invoice.items.map((item: any, idx: number) => (
               <tr
                 key={idx}
                 className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}

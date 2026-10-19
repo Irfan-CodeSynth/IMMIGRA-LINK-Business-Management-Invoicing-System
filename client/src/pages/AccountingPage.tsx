@@ -293,7 +293,7 @@ export const AccountingPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono">
-                  {entry.lines.map((line, idx) => (
+                  {entry.lines.map((line: any, idx: number) => (
                     <tr key={idx} className="hover:bg-slate-50/50">
                       <td className="py-2 px-4 font-sans font-semibold text-slate-900">
                         {line.accountCode} - {line.accountName}

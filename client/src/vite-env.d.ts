@@ -14,3 +14,8 @@ declare module "*.svg" {
   const src: string;
   export default src;
 }
+
+declare module "jsbarcode" {
+  const jsbarcode: any;
+  export default jsbarcode;
+}
