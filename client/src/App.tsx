@@ -21,6 +21,7 @@ import { ReportsPage } from "./pages/ReportsPage";
 import { StaffPage } from "./pages/StaffPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { VerifyInvoicePage } from "./pages/VerifyInvoicePage";
+import { AppAlertModal } from "./components/common/AppAlertModal";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +55,7 @@ export const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
+          <AppAlertModal />
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />

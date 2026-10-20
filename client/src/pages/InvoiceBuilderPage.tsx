@@ -13,6 +13,7 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
+import { showAppAlert } from "../services/alertService";
 
 interface FormItem {
   serviceId?: string;
@@ -185,17 +186,17 @@ export const InvoiceBuilderPage: React.FC = () => {
         setNewCustPhone("");
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to add customer");
+      showAppAlert(err.response?.data?.message || "Failed to add customer", "Customer Error", "error");
     }
   };
 
   const handleSubmit = async (status: "DRAFT" | "ISSUED") => {
     if (!customerId) {
-      alert("Please select a customer");
+      showAppAlert("Please select a customer for this invoice", "Customer Required", "warning");
       return;
     }
     if (items.some((i) => !i.serviceName.trim())) {
-      alert("All service rows must have a service name");
+      showAppAlert("All invoice rows must include a service name", "Missing Service Name", "warning");
       return;
     }
 
@@ -225,7 +226,7 @@ export const InvoiceBuilderPage: React.FC = () => {
         navigate(`/invoices/${res.data.data._id}`);
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to create invoice");
+      showAppAlert(err.response?.data?.message || "Failed to create invoice", "Creation Failed", "error");
     } finally {
       setSubmitting(false);
     }

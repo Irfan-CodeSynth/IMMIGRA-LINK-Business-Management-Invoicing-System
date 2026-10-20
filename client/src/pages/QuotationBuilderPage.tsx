@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Calendar,
 } from "lucide-react";
+import { showAppAlert } from "../services/alertService";
 
 interface FormItem {
   serviceId?: string;
@@ -153,7 +154,7 @@ export const QuotationBuilderPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerId) {
-      alert("Please select a customer");
+      showAppAlert("Please select a customer for this quotation", "Customer Required", "warning");
       return;
     }
 
@@ -180,7 +181,7 @@ export const QuotationBuilderPage: React.FC = () => {
         navigate("/quotations");
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to create quotation");
+      showAppAlert(err.response?.data?.message || "Failed to create quotation", "Creation Error", "error");
     } finally {
       setSubmitting(false);
     }

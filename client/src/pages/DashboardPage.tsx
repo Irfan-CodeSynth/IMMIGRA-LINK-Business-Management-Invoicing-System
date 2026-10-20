@@ -29,6 +29,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
+import { showAppAlert } from "../services/alertService";
 
 export const DashboardPage: React.FC = () => {
   const [data, setData] = useState<any>(null);
@@ -60,7 +61,8 @@ export const DashboardPage: React.FC = () => {
         await fetchDashboardData();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete invoice");
+      setDeletingInvoice(null);
+      showAppAlert(err.response?.data?.message || "Failed to delete invoice", "Action Blocked", "error");
     } finally {
       setIsDeleting(false);
     }
@@ -76,7 +78,8 @@ export const DashboardPage: React.FC = () => {
         await fetchDashboardData();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete payment");
+      setDeletingPayment(null);
+      showAppAlert(err.response?.data?.message || "Failed to delete payment", "Action Blocked", "error");
     } finally {
       setIsDeleting(false);
     }

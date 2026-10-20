@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
+import { showAppAlert } from "../services/alertService";
 
 export const InvoiceViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -102,7 +103,8 @@ export const InvoiceViewPage: React.FC = () => {
         setShowVoidModal(false);
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to void invoice");
+      setShowVoidModal(false);
+      showAppAlert(err.response?.data?.message || "Failed to void invoice", "Void Failed", "error");
     } finally {
       setIsVoiding(false);
     }
@@ -134,7 +136,7 @@ export const InvoiceViewPage: React.FC = () => {
         await fetchData(); // refresh invoice state
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to record payment");
+      showAppAlert(err.response?.data?.message || "Failed to record payment", "Payment Error", "error");
     } finally {
       setPaymentSubmitting(false);
     }

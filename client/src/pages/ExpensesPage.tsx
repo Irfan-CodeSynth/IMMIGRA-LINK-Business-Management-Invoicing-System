@@ -14,6 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
+import { showAppAlert } from "../services/alertService";
 
 export const ExpensesPage: React.FC = () => {
   const [expenses, setExpenses] = useState<IExpense[]>([]);
@@ -99,11 +100,11 @@ export const ExpensesPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!payee.trim()) {
-      alert("Please enter the payee or supplier name");
+      showAppAlert("Please enter the payee or supplier name", "Validation Error", "warning");
       return;
     }
     if (amountAed <= 0) {
-      alert("Amount must be greater than zero");
+      showAppAlert("Expense amount must be greater than zero AED", "Validation Error", "warning");
       return;
     }
 
@@ -129,7 +130,7 @@ export const ExpensesPage: React.FC = () => {
         await fetchExpenses();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to record expense");
+      showAppAlert(err.response?.data?.message || "Failed to record expense", "Expense Error", "error");
     } finally {
       setSubmitting(false);
     }
@@ -160,7 +161,7 @@ export const ExpensesPage: React.FC = () => {
         await fetchExpenses();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update expense");
+      showAppAlert(err.response?.data?.message || "Failed to update expense", "Update Error", "error");
     }
   };
 
@@ -172,7 +173,8 @@ export const ExpensesPage: React.FC = () => {
       setDeletingExpense(null);
       await fetchExpenses();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete expense");
+      setDeletingExpense(null);
+      showAppAlert(err.response?.data?.message || "Failed to delete expense", "Action Blocked", "error");
     } finally {
       setIsDeleting(false);
     }

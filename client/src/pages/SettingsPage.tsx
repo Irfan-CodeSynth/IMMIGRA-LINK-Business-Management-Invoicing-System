@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   ShieldCheck,
 } from "lucide-react";
+import { showAppAlert } from "../services/alertService";
 
 export const SettingsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -111,7 +112,7 @@ export const SettingsPage: React.FC = () => {
         setTimeout(() => setSuccessMsg(""), 3000);
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to save settings");
+      showAppAlert(err.response?.data?.message || "Failed to save settings", "Settings Error", "error");
     } finally {
       setSaving(false);
     }

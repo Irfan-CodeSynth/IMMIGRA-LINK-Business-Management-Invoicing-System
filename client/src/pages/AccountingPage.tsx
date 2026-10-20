@@ -14,6 +14,7 @@ import {
   Edit2,
 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
+import { showAppAlert } from "../services/alertService";
 
 export const AccountingPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"CHART" | "JOURNALS" | "LEDGER">("CHART");
@@ -135,7 +136,7 @@ export const AccountingPage: React.FC = () => {
   const handlePostJournal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isBalanced) {
-      alert("Journal entry must be balanced (Debits must equal Credits)!");
+      showAppAlert("Journal entry must be balanced (Debits must equal Credits)!", "Imbalanced Entry", "warning");
       return;
     }
 
@@ -162,7 +163,7 @@ export const AccountingPage: React.FC = () => {
         await fetchLedger();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to post journal entry");
+      showAppAlert(err.response?.data?.message || "Failed to post journal entry", "Posting Error", "error");
     } finally {
       setSubmitting(false);
     }
@@ -171,7 +172,7 @@ export const AccountingPage: React.FC = () => {
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAccCode.trim() || !newAccName.trim()) {
-      alert("Please provide account code and title");
+      showAppAlert("Please provide account code and title", "Validation Error", "warning");
       return;
     }
     try {
@@ -190,7 +191,7 @@ export const AccountingPage: React.FC = () => {
         await fetchAccounts();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to create account");
+      showAppAlert(err.response?.data?.message || "Failed to create account", "Account Error", "error");
     }
   };
 
@@ -215,7 +216,7 @@ export const AccountingPage: React.FC = () => {
         await fetchAccounts();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update account");
+      showAppAlert(err.response?.data?.message || "Failed to update account", "Update Error", "error");
     }
   };
 
@@ -227,7 +228,8 @@ export const AccountingPage: React.FC = () => {
       setDeletingAccount(null);
       await fetchAccounts();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete account");
+      setDeletingAccount(null);
+      showAppAlert(err.response?.data?.message || "Failed to delete account", "Action Blocked", "error");
     } finally {
       setIsDeleting(false);
     }
@@ -241,7 +243,8 @@ export const AccountingPage: React.FC = () => {
       setDeletingJournal(null);
       await Promise.all([fetchAccounts(), fetchJournals(), fetchLedger()]);
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete journal entry");
+      setDeletingJournal(null);
+      showAppAlert(err.response?.data?.message || "Failed to delete journal entry", "Action Blocked", "error");
     } finally {
       setIsDeleting(false);
     }

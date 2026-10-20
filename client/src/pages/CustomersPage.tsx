@@ -18,6 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
+import { showAppAlert } from "../services/alertService";
 
 export const CustomersPage: React.FC = () => {
   const [customers, setCustomers] = useState<ICustomer[]>([]);
@@ -137,7 +138,7 @@ export const CustomersPage: React.FC = () => {
       setShowModal(false);
       await fetchCustomers();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to save customer");
+      showAppAlert(err.response?.data?.message || "Failed to save customer", "Save Failed", "error");
     } finally {
       setSubmitting(false);
     }
@@ -151,7 +152,8 @@ export const CustomersPage: React.FC = () => {
       setDeletingCustomer(null);
       await fetchCustomers();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete customer");
+      setDeletingCustomer(null);
+      showAppAlert(err.response?.data?.message || "Failed to delete customer", "Action Blocked", "error");
     } finally {
       setIsDeleting(false);
     }

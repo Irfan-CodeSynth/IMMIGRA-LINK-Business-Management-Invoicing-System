@@ -15,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
+import { showAppAlert } from "../services/alertService";
 
 export const PaymentsPage: React.FC = () => {
   const [payments, setPayments] = useState<IPayment[]>([]);
@@ -99,11 +100,11 @@ export const PaymentsPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCustomerId) {
-      alert("Please select a customer");
+      showAppAlert("Please select a customer to record payment", "Validation Error", "warning");
       return;
     }
     if (paymentAmountAed <= 0) {
-      alert("Amount must be greater than zero");
+      showAppAlert("Payment amount must be greater than zero AED", "Validation Error", "warning");
       return;
     }
 
@@ -135,7 +136,7 @@ export const PaymentsPage: React.FC = () => {
         setViewingPayment(res.data.data);
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to record payment");
+      showAppAlert(err.response?.data?.message || "Failed to record payment", "Payment Error", "error");
     } finally {
       setSubmitting(false);
     }
@@ -162,7 +163,7 @@ export const PaymentsPage: React.FC = () => {
         await fetchPayments();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update payment");
+      showAppAlert(err.response?.data?.message || "Failed to update payment", "Update Error", "error");
     }
   };
 
@@ -174,7 +175,8 @@ export const PaymentsPage: React.FC = () => {
       setDeletingPayment(null);
       await fetchPayments();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete payment");
+      setDeletingPayment(null);
+      showAppAlert(err.response?.data?.message || "Failed to delete payment", "Action Blocked", "error");
     } finally {
       setIsDeleting(false);
     }

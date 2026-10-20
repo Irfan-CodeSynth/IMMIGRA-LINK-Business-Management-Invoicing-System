@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
+import { showAppAlert } from "../services/alertService";
 
 export const InvoicesPage: React.FC = () => {
   const [invoices, setInvoices] = useState<IInvoice[]>([]);
@@ -76,7 +77,7 @@ export const InvoicesPage: React.FC = () => {
       setEditingInvoice(null);
       await fetchInvoices();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update invoice");
+      showAppAlert(err.response?.data?.message || "Failed to update invoice", "Update Failed", "error");
     } finally {
       setEditSaving(false);
     }
@@ -90,7 +91,12 @@ export const InvoicesPage: React.FC = () => {
       setDeletingInvoice(null);
       await fetchInvoices();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete invoice");
+      setDeletingInvoice(null);
+      showAppAlert(
+        err.response?.data?.message || "Failed to delete invoice",
+        "Action Blocked",
+        "error"
+      );
     } finally {
       setIsDeleting(false);
     }

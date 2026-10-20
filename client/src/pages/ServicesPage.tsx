@@ -14,6 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
+import { showAppAlert } from "../services/alertService";
 
 export const ServicesPage: React.FC = () => {
   const [services, setServices] = useState<IService[]>([]);
@@ -112,7 +113,7 @@ export const ServicesPage: React.FC = () => {
       setShowModal(false);
       await fetchServices();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to save service");
+      showAppAlert(err.response?.data?.message || "Failed to save service", "Save Failed", "error");
     } finally {
       setSubmitting(false);
     }
@@ -123,7 +124,7 @@ export const ServicesPage: React.FC = () => {
       await api.patch(`/services/${id}/toggle-status`);
       await fetchServices();
     } catch (err: any) {
-      alert("Failed to toggle service status");
+      showAppAlert("Failed to toggle service status", "Status Error", "error");
     }
   };
 
@@ -135,7 +136,8 @@ export const ServicesPage: React.FC = () => {
       setDeletingService(null);
       await fetchServices();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete service");
+      setDeletingService(null);
+      showAppAlert(err.response?.data?.message || "Failed to delete service", "Action Blocked", "error");
     } finally {
       setIsDeleting(false);
     }

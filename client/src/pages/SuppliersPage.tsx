@@ -3,6 +3,7 @@ import { api } from "../services/api";
 import { formatAed, ISupplier } from "@immigra/shared";
 import { Truck, Plus, Search, Phone, Mail, X, Eye, Edit2, Trash2 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
+import { showAppAlert } from "../services/alertService";
 
 export const SuppliersPage: React.FC = () => {
   const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
@@ -75,7 +76,7 @@ export const SuppliersPage: React.FC = () => {
         await fetchSuppliers();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to add supplier");
+      showAppAlert(err.response?.data?.message || "Failed to add supplier", "Supplier Error", "error");
     } finally {
       setSubmitting(false);
     }
@@ -108,7 +109,7 @@ export const SuppliersPage: React.FC = () => {
         await fetchSuppliers();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update supplier");
+      showAppAlert(err.response?.data?.message || "Failed to update supplier", "Update Error", "error");
     }
   };
 
@@ -120,7 +121,8 @@ export const SuppliersPage: React.FC = () => {
       setDeletingSupplier(null);
       await fetchSuppliers();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete supplier");
+      setDeletingSupplier(null);
+      showAppAlert(err.response?.data?.message || "Failed to delete supplier", "Action Blocked", "error");
     } finally {
       setIsDeleting(false);
     }

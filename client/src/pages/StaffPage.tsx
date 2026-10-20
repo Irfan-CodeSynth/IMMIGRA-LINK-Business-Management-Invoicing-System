@@ -11,6 +11,7 @@ import {
   XCircle,
   X,
 } from "lucide-react";
+import { showAppAlert } from "../services/alertService";
 
 export const StaffPage: React.FC = () => {
   const [staff, setStaff] = useState<IUser[]>([]);
@@ -63,7 +64,7 @@ export const StaffPage: React.FC = () => {
         await fetchStaff();
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to create staff member");
+      showAppAlert(err.response?.data?.message || "Failed to create staff member", "Staff Creation Error", "error");
     } finally {
       setSubmitting(false);
     }
@@ -74,7 +75,7 @@ export const StaffPage: React.FC = () => {
       await api.patch(`/staff/${userId}/toggle-status`);
       await fetchStaff();
     } catch (err: any) {
-      alert("Failed to toggle status");
+      showAppAlert("Failed to toggle status", "Status Error", "error");
     }
   };
 

@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
+import { showAppAlert } from "../services/alertService";
 
 export const QuotationsPage: React.FC = () => {
   const [quotations, setQuotations] = useState<IQuotation[]>([]);
@@ -57,7 +58,8 @@ export const QuotationsPage: React.FC = () => {
         window.location.href = `/invoices/${res.data.data.invoice._id}`;
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to convert quotation");
+      setConvertingQuotation(null);
+      showAppAlert(err.response?.data?.message || "Failed to convert quotation", "Conversion Error", "error");
     } finally {
       setConvertingId(null);
     }
@@ -71,7 +73,8 @@ export const QuotationsPage: React.FC = () => {
       setDeletingQuotation(null);
       await fetchQuotations();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete quotation");
+      setDeletingQuotation(null);
+      showAppAlert(err.response?.data?.message || "Failed to delete quotation", "Action Blocked", "error");
     } finally {
       setIsDeleting(false);
     }
@@ -95,7 +98,7 @@ export const QuotationsPage: React.FC = () => {
       setEditingQuotation(null);
       await fetchQuotations();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update quotation");
+      showAppAlert(err.response?.data?.message || "Failed to update quotation", "Update Error", "error");
     } finally {
       setEditSaving(false);
     }
