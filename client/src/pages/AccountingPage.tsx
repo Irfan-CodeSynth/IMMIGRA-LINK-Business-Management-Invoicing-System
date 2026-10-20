@@ -13,6 +13,7 @@ import {
   Eye,
   Edit2,
 } from "lucide-react";
+import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 
 export const AccountingPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"CHART" | "JOURNALS" | "LEDGER">("CHART");
@@ -48,6 +49,11 @@ export const AccountingPage: React.FC = () => {
 
   // View Account Modal
   const [viewingAccount, setViewingAccount] = useState<IAccount | null>(null);
+
+  // Delete modals
+  const [deletingAccount, setDeletingAccount] = useState<IAccount | null>(null);
+  const [deletingJournal, setDeletingJournal] = useState<IJournalEntry | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchAccounts = async () => {
     try {
@@ -213,35 +219,31 @@ export const AccountingPage: React.FC = () => {
     }
   };
 
-  const handleDeleteAccount = async (acc: IAccount) => {
-    if (!window.confirm(`Are you sure you want to delete account "${acc.code} - ${acc.name}"?`)) {
-      return;
-    }
+  const handleConfirmDeleteAccount = async () => {
+    if (!deletingAccount) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/accounting/accounts/${acc._id}`);
-      if (res.data.success) {
-        await fetchAccounts();
-      }
+      await api.delete(`/accounting/accounts/${deletingAccount._id}`);
+      setDeletingAccount(null);
+      await fetchAccounts();
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete account");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleDeleteJournal = async (id: string, entryNo: string) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to void and delete manual journal entry ${entryNo}? All account balance changes will be reversed automatically.`
-      )
-    ) {
-      return;
-    }
+  const handleConfirmDeleteJournal = async () => {
+    if (!deletingJournal) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/accounting/journals/${id}`);
-      if (res.data.success) {
-        await Promise.all([fetchAccounts(), fetchJournals(), fetchLedger()]);
-      }
+      await api.delete(`/accounting/journals/${deletingJournal._id}`);
+      setDeletingJournal(null);
+      await Promise.all([fetchAccounts(), fetchJournals(), fetchLedger()]);
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete journal entry");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -381,7 +383,7 @@ export const AccountingPage: React.FC = () => {
                       </button>
                       {!acc.isSystem && (
                         <button
-                          onClick={() => handleDeleteAccount(acc)}
+                          onClick={() => setDeletingAccount(acc)}
                           className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                           title="Delete Account"
                         >
@@ -426,7 +428,7 @@ export const AccountingPage: React.FC = () => {
                   </span>
                   {entry.sourceDocumentType === "MANUAL" && (
                     <button
-                      onClick={() => handleDeleteJournal(entry._id, entry.entryNumber)}
+                      onClick={() => setDeletingJournal(entry)}
                       className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition ml-1"
                       title="Void & Delete Journal Entry"
                     >
@@ -982,6 +984,32 @@ export const AccountingPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Account Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deletingAccount}
+        title="Delete Chart Account"
+        itemName={deletingAccount ? `${deletingAccount.code} - ${deletingAccount.name}` : ""}
+        message="Are you sure you want to permanently delete this chart of accounts entry?"
+        warningNote="Accounts with linked transactions or non-zero balances cannot be removed."
+        confirmText="Yes, Delete Account"
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDeleteAccount}
+        onClose={() => setDeletingAccount(null)}
+      />
+
+      {/* Delete Journal Entry Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deletingJournal}
+        title="Void & Delete Journal Entry"
+        itemName={deletingJournal ? `${deletingJournal.entryNumber} (${deletingJournal.description})` : ""}
+        message="Are you sure you want to void and delete this manual journal entry? Account balances will be immediately recalculated."
+        warningNote="This journal entry and all its debit/credit line items will be permanently erased."
+        confirmText="Yes, Delete Journal"
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDeleteJournal}
+        onClose={() => setDeletingJournal(null)}
+      />
     </div>
   );
 };

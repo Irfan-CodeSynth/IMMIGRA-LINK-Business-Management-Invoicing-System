@@ -15,6 +15,7 @@ import {
   AlertCircle,
   X,
 } from "lucide-react";
+import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 
 export const InvoiceViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +24,8 @@ export const InvoiceViewPage: React.FC = () => {
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [showVoidModal, setShowVoidModal] = useState(false);
+  const [isVoiding, setIsVoiding] = useState(false);
 
   // Payment Modal State
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -89,19 +92,19 @@ export const InvoiceViewPage: React.FC = () => {
     }
   };
 
-  const handleVoid = async () => {
+  const handleConfirmVoid = async () => {
     if (!invoice) return;
-    if (!window.confirm(`Are you sure you want to void ${invoice.invoiceNumber}? This action is irreversible.`)) {
-      return;
-    }
-
+    setIsVoiding(true);
     try {
       const res = await api.patch(`/invoices/${invoice._id}/void`);
       if (res.data.success) {
         setInvoice(res.data.data);
+        setShowVoidModal(false);
       }
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to void invoice");
+    } finally {
+      setIsVoiding(false);
     }
   };
 
@@ -231,7 +234,7 @@ export const InvoiceViewPage: React.FC = () => {
           {/* Void Button */}
           {invoice.status !== "VOID" && invoice.paidAmountFils === 0 && (
             <button
-              onClick={handleVoid}
+              onClick={() => setShowVoidModal(true)}
               className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg text-xs font-semibold transition border border-transparent hover:border-red-200"
             >
               <Ban className="w-4 h-4" />
@@ -359,6 +362,19 @@ export const InvoiceViewPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Void Invoice Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showVoidModal}
+        title="Void Tax Invoice"
+        itemName={invoice.invoiceNumber}
+        message="Are you sure you want to void this invoice? This action is irreversible and cancels accounting balances."
+        warningNote="Once voided, payments can no longer be recorded against this invoice."
+        confirmText="Yes, Void Invoice"
+        isDeleting={isVoiding}
+        onConfirm={handleConfirmVoid}
+        onClose={() => setShowVoidModal(false)}
+      />
     </div>
   );
 };

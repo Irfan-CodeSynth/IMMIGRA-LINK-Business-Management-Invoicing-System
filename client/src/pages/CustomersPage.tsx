@@ -17,6 +17,7 @@ import {
   Edit2,
   Trash2,
 } from "lucide-react";
+import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 
 export const CustomersPage: React.FC = () => {
   const [customers, setCustomers] = useState<ICustomer[]>([]);
@@ -27,6 +28,8 @@ export const CustomersPage: React.FC = () => {
   // Modal
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<ICustomer | null>(null);
+  const [deletingCustomer, setDeletingCustomer] = useState<ICustomer | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form State
   const [customerType, setCustomerType] = useState<CustomerType>(CustomerType.BUSINESS);
@@ -140,18 +143,17 @@ export const CustomersPage: React.FC = () => {
     }
   };
 
-  const handleDeleteCustomer = async (c: ICustomer) => {
-    if (!window.confirm(`Are you sure you want to delete customer "${c.displayName}"?`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!deletingCustomer) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/customers/${c._id}`);
-      if (res.data?.message) {
-        alert(res.data.message);
-      }
+      await api.delete(`/customers/${deletingCustomer._id}`);
+      setDeletingCustomer(null);
       await fetchCustomers();
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete customer");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -323,7 +325,7 @@ export const CustomersPage: React.FC = () => {
                           <span>Edit</span>
                         </button>
                         <button
-                          onClick={() => handleDeleteCustomer(c)}
+                          onClick={() => setDeletingCustomer(c)}
                           title="Delete / Archive Customer"
                           className="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 inline-flex items-center gap-1 font-semibold text-[11px] transition shadow-xs"
                         >
@@ -496,6 +498,18 @@ export const CustomersPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deletingCustomer}
+        title="Delete Customer Profile"
+        itemName={deletingCustomer ? `${deletingCustomer.displayName} (${deletingCustomer.referenceNumber})` : ""}
+        message="Are you sure you want to delete this customer? Customers with active or unpaid invoices cannot be deleted."
+        warningNote={deletingCustomer && deletingCustomer.balanceFils !== 0 ? `This customer currently has an active balance of AED ${formatAed(deletingCustomer.balanceFils)}.` : undefined}
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeletingCustomer(null)}
+      />
     </div>
   );
 };

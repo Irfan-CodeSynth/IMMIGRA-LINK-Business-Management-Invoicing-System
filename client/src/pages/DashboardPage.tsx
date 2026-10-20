@@ -28,10 +28,14 @@ import {
   Legend,
   CartesianGrid,
 } from "recharts";
+import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 
 export const DashboardPage: React.FC = () => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [deletingInvoice, setDeletingInvoice] = useState<any | null>(null);
+  const [deletingPayment, setDeletingPayment] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchDashboardData = async () => {
     try {
@@ -46,35 +50,35 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
-  const handleDeleteInvoice = async (invoiceId: string, invoiceNo: string) => {
-    if (!window.confirm(`Are you sure you want to delete / void invoice ${invoiceNo}?`)) {
-      return;
-    }
+  const handleConfirmDeleteInvoice = async () => {
+    if (!deletingInvoice) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/invoices/${invoiceId}`);
+      const res = await api.delete(`/invoices/${deletingInvoice._id}`);
       if (res.data.success) {
+        setDeletingInvoice(null);
         await fetchDashboardData();
       }
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete invoice");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleDeletePayment = async (paymentId: string, receiptNo: string) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete payment ${receiptNo}? Allocations and customer balance will revert.`
-      )
-    ) {
-      return;
-    }
+  const handleConfirmDeletePayment = async () => {
+    if (!deletingPayment) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/payments/${paymentId}`);
+      const res = await api.delete(`/payments/${deletingPayment._id}`);
       if (res.data.success) {
+        setDeletingPayment(null);
         await fetchDashboardData();
       }
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete payment");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -372,7 +376,7 @@ export const DashboardPage: React.FC = () => {
                           <Edit2 className="w-3.5 h-3.5" />
                         </Link>
                         <button
-                          onClick={() => handleDeleteInvoice(inv._id, inv.invoiceNumber)}
+                          onClick={() => setDeletingInvoice(inv)}
                           className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                           title="Delete / Void Invoice"
                         >
@@ -441,7 +445,7 @@ export const DashboardPage: React.FC = () => {
                           <Edit2 className="w-3.5 h-3.5" />
                         </Link>
                         <button
-                          onClick={() => handleDeletePayment(pay._id, pay.receiptNumber)}
+                          onClick={() => setDeletingPayment(pay)}
                           className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                           title="Delete Payment"
                         >
@@ -456,6 +460,32 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Invoice Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deletingInvoice}
+        title="Delete / Void Tax Invoice"
+        itemName={deletingInvoice ? `${deletingInvoice.invoiceNumber} (${deletingInvoice.customerSnapshot?.displayName || "Customer"})` : ""}
+        message="Are you sure you want to void and delete this invoice? The transaction will be marked as VOID and journal entries will be reversed."
+        warningNote="This action affects receivable ledgers and accounts."
+        confirmText="Yes, Void & Delete Invoice"
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDeleteInvoice}
+        onClose={() => setDeletingInvoice(null)}
+      />
+
+      {/* Delete Payment Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deletingPayment}
+        title="Delete Payment Receipt"
+        itemName={deletingPayment ? `${deletingPayment.receiptNumber} (${formatAed(deletingPayment.amountFils || 0)} AED)` : ""}
+        message="Are you sure you want to delete this payment receipt? Allocations and customer balance will revert."
+        warningNote="Invoice payment status will automatically revert to unpaid or partially paid."
+        confirmText="Yes, Delete Payment"
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDeletePayment}
+        onClose={() => setDeletingPayment(null)}
+      />
     </div>
   );
 };

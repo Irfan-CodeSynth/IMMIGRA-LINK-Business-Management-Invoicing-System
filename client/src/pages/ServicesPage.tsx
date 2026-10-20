@@ -13,6 +13,7 @@ import {
   Eye,
   Trash2,
 } from "lucide-react";
+import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 
 export const ServicesPage: React.FC = () => {
   const [services, setServices] = useState<IService[]>([]);
@@ -24,6 +25,8 @@ export const ServicesPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingService, setEditingService] = useState<IService | null>(null);
   const [viewingService, setViewingService] = useState<IService | null>(null);
+  const [deletingService, setDeletingService] = useState<IService | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form State
   const [name, setName] = useState("");
@@ -124,18 +127,17 @@ export const ServicesPage: React.FC = () => {
     }
   };
 
-  const handleDeleteService = async (srv: IService) => {
-    if (!window.confirm(`Are you sure you want to delete service "${srv.name}" (${srv.code})?`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!deletingService) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/services/${srv._id}`);
-      if (res.data?.message) {
-        alert(res.data.message);
-      }
+      await api.delete(`/services/${deletingService._id}`);
+      setDeletingService(null);
       await fetchServices();
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete service");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -289,7 +291,7 @@ export const ServicesPage: React.FC = () => {
                           <span>Edit</span>
                         </button>
                         <button
-                          onClick={() => handleDeleteService(srv)}
+                          onClick={() => setDeletingService(srv)}
                           title="Delete Service"
                           className="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 inline-flex items-center gap-1 font-semibold text-[11px] transition shadow-xs"
                         >
@@ -498,6 +500,17 @@ export const ServicesPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deletingService}
+        title="Delete Service Offering"
+        itemName={deletingService ? `${deletingService.name} (${deletingService.code})` : ""}
+        message="Are you sure you want to delete this service from your catalog? Existing historical invoices and quotations that used this service will remain preserved."
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeletingService(null)}
+      />
     </div>
   );
 };

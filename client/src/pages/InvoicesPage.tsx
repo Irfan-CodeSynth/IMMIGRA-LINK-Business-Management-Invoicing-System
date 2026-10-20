@@ -14,6 +14,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 
 export const InvoicesPage: React.FC = () => {
   const [invoices, setInvoices] = useState<IInvoice[]>([]);
@@ -25,6 +26,8 @@ export const InvoicesPage: React.FC = () => {
   const [editPaymentTerms, setEditPaymentTerms] = useState<string>("");
   const [editDueDate, setEditDueDate] = useState<string>("");
   const [editSaving, setEditSaving] = useState<boolean>(false);
+  const [deletingInvoice, setDeletingInvoice] = useState<IInvoice | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchInvoices = async () => {
     setLoading(true);
@@ -79,18 +82,17 @@ export const InvoicesPage: React.FC = () => {
     }
   };
 
-  const handleDeleteInvoice = async (inv: IInvoice) => {
-    if (!window.confirm(`Are you sure you want to delete invoice "${inv.invoiceNumber}"?`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!deletingInvoice) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/invoices/${inv._id}`);
-      if (res.data?.message) {
-        alert(res.data.message);
-      }
+      await api.delete(`/invoices/${deletingInvoice._id}`);
+      setDeletingInvoice(null);
       await fetchInvoices();
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete invoice");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -258,7 +260,7 @@ export const InvoicesPage: React.FC = () => {
                           <span>Edit</span>
                         </button>
                         <button
-                          onClick={() => handleDeleteInvoice(inv)}
+                          onClick={() => setDeletingInvoice(inv)}
                           title="Delete / Void Invoice"
                           className="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 inline-flex items-center gap-1 font-semibold text-[11px] transition shadow-xs"
                         >
@@ -343,6 +345,18 @@ export const InvoicesPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deletingInvoice}
+        title="Void / Delete Invoice"
+        itemName={deletingInvoice ? `${deletingInvoice.invoiceNumber} — ${deletingInvoice.customerSnapshot?.displayName}` : ""}
+        message="Are you sure you want to void or delete this invoice? The invoice status will be marked VOID, customer due balance will be reverted, and accounting journal entries will be reversed."
+        warningNote={deletingInvoice && deletingInvoice.paidAmountFils > 0 ? `Notice: This invoice has AED ${formatAed(deletingInvoice.paidAmountFils)} in collected payments. Please ensure associated payment receipts are adjusted accordingly.` : undefined}
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeletingInvoice(null)}
+      />
     </div>
   );
 };

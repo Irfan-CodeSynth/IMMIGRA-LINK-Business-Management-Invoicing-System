@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
 import { formatAed, ISupplier } from "@immigra/shared";
 import { Truck, Plus, Search, Phone, Mail, X, Eye, Edit2, Trash2 } from "lucide-react";
+import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 
 export const SuppliersPage: React.FC = () => {
   const [suppliers, setSuppliers] = useState<ISupplier[]>([]);
@@ -27,6 +28,10 @@ export const SuppliersPage: React.FC = () => {
   const [editEmail, setEditEmail] = useState("");
   const [editAddress, setEditAddress] = useState("");
   const [editNotes, setEditNotes] = useState("");
+
+  // Delete modal
+  const [deletingSupplier, setDeletingSupplier] = useState<ISupplier | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchSuppliers = async () => {
     setLoading(true);
@@ -107,17 +112,17 @@ export const SuppliersPage: React.FC = () => {
     }
   };
 
-  const handleDeleteSupplier = async (supplierId: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete supplier "${name}"?`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!deletingSupplier) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/suppliers/${supplierId}`);
-      if (res.data.success) {
-        await fetchSuppliers();
-      }
+      await api.delete(`/suppliers/${deletingSupplier._id}`);
+      setDeletingSupplier(null);
+      await fetchSuppliers();
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete supplier");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -208,7 +213,7 @@ export const SuppliersPage: React.FC = () => {
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDeleteSupplier(s._id, s.supplierName)}
+                        onClick={() => setDeletingSupplier(s)}
                         className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                         title="Delete Supplier"
                       >
@@ -501,6 +506,18 @@ export const SuppliersPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deletingSupplier}
+        title="Delete Supplier & Vendor"
+        itemName={deletingSupplier ? deletingSupplier.supplierName : ""}
+        message="Are you sure you want to delete this supplier profile? This action cannot be undone."
+        warningNote={deletingSupplier && deletingSupplier.balanceFils !== 0 ? `This supplier currently has an outstanding payable balance of AED ${formatAed(deletingSupplier.balanceFils)}.` : undefined}
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeletingSupplier(null)}
+      />
     </div>
   );
 };

@@ -13,6 +13,7 @@ import {
   Edit2,
   Trash2,
 } from "lucide-react";
+import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 
 export const ExpensesPage: React.FC = () => {
   const [expenses, setExpenses] = useState<IExpense[]>([]);
@@ -45,6 +46,10 @@ export const ExpensesPage: React.FC = () => {
   const [editMethod, setEditMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
   const [editReference, setEditReference] = useState("");
   const [editNotes, setEditNotes] = useState("");
+
+  // Delete Confirmation Modal
+  const [deletingExpense, setDeletingExpense] = useState<IExpense | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const categories = [
     { label: "Government Fees & Tasheel", account: "5010" },
@@ -159,17 +164,17 @@ export const ExpensesPage: React.FC = () => {
     }
   };
 
-  const handleDeleteExpense = async (expenseId: string, expenseNo: string) => {
-    if (!window.confirm(`Are you sure you want to delete expense voucher ${expenseNo}?`)) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!deletingExpense) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/expenses/${expenseId}`);
-      if (res.data.success) {
-        await fetchExpenses();
-      }
+      await api.delete(`/expenses/${deletingExpense._id}`);
+      setDeletingExpense(null);
+      await fetchExpenses();
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete expense");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -309,7 +314,7 @@ export const ExpensesPage: React.FC = () => {
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteExpense(exp._id, exp.expenseNumber)}
+                          onClick={() => setDeletingExpense(exp)}
                           className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                           title="Delete Expense"
                         >
@@ -676,6 +681,18 @@ export const ExpensesPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deletingExpense}
+        title="Delete Expense Voucher"
+        itemName={deletingExpense ? `${deletingExpense.expenseNumber} — ${deletingExpense.payee} (${formatAed(deletingExpense.amountFils)} AED)` : ""}
+        message="Are you sure you want to delete this expense record? The general ledger line entries for this disbursement will be removed."
+        warningNote="This action permanently removes this expense transaction from your financial reporting."
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeletingExpense(null)}
+      />
     </div>
   );
 };

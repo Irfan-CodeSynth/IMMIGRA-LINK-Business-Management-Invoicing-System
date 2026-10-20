@@ -14,6 +14,7 @@ import {
   Edit2,
   Trash2,
 } from "lucide-react";
+import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 
 export const PaymentsPage: React.FC = () => {
   const [payments, setPayments] = useState<IPayment[]>([]);
@@ -40,6 +41,10 @@ export const PaymentsPage: React.FC = () => {
   const [editMethod, setEditMethod] = useState<PaymentMethod>(PaymentMethod.CASH);
   const [editReference, setEditReference] = useState("");
   const [editNotes, setEditNotes] = useState("");
+
+  // Delete Confirmation Modal
+  const [deletingPayment, setDeletingPayment] = useState<IPayment | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchPayments = async () => {
     setLoading(true);
@@ -161,21 +166,17 @@ export const PaymentsPage: React.FC = () => {
     }
   };
 
-  const handleDeletePayment = async (paymentId: string, receiptNo: string) => {
-    if (
-      !window.confirm(
-        `Are you sure you want to delete payment ${receiptNo}? This will revert invoice allocations, customer balances, and journal entries.`
-      )
-    ) {
-      return;
-    }
+  const handleConfirmDelete = async () => {
+    if (!deletingPayment) return;
+    setIsDeleting(true);
     try {
-      const res = await api.delete(`/payments/${paymentId}`);
-      if (res.data.success) {
-        await fetchPayments();
-      }
+      await api.delete(`/payments/${deletingPayment._id}`);
+      setDeletingPayment(null);
+      await fetchPayments();
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to delete payment");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -276,7 +277,7 @@ export const PaymentsPage: React.FC = () => {
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDeletePayment(p._id, p.receiptNumber)}
+                          onClick={() => setDeletingPayment(p)}
                           className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition"
                           title="Delete Payment"
                         >
@@ -604,6 +605,18 @@ export const PaymentsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={!!deletingPayment}
+        title="Delete Payment Receipt Voucher"
+        itemName={deletingPayment ? `${deletingPayment.receiptNumber} (${formatAed(deletingPayment.amountFils)} AED)` : ""}
+        message="Are you sure you want to delete this payment receipt? The invoice allocations will be removed, customer outstanding balance will be restored, and double-entry ledger entries will be reversed."
+        warningNote="This will decrease collected cash/bank balances in your general ledger."
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeletingPayment(null)}
+      />
     </div>
   );
 };
