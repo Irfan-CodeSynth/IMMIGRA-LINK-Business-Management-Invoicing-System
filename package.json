@@ -15,8 +15,9 @@
     "build": "npm run build:shared && npm run build:server && npm run build:client",
     "dev:server": "node ./node_modules/tsx/dist/cli.mjs watch --tsconfig server/tsconfig.json server/src/server.ts",
     "dev:client": "cd client && node ../node_modules/vite/bin/vite.js",
-    "seed": "node ./node_modules/tsx/dist/cli.mjs server/src/utils/seed.ts",
-    "test": "node ./node_modules/tsx/dist/cli.mjs server/src/tests/financial.test.ts"
+    "seed": "node ./node_modules/tsx/dist/cli.mjs --tsconfig server/tsconfig.json server/src/utils/seed.ts",
+    "clean": "node ./node_modules/tsx/dist/cli.mjs --tsconfig server/tsconfig.json server/src/utils/cleanDatabase.ts",
+    "test": "node ./node_modules/tsx/dist/cli.mjs --tsconfig server/tsconfig.json server/src/tests/financial.test.ts"
   },
   "keywords": [
     "immigra-link",

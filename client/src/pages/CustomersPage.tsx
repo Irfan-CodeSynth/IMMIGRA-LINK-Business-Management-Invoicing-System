@@ -392,7 +392,7 @@ export const CustomersPage: React.FC = () => {
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="e.g. Omeza Quickcare Services Est."
+                  placeholder="e.g. Al Wasl Trading LLC / John Smith"
                   className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-brand-gold/50"
                 />
               </div>

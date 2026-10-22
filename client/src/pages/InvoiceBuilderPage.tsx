@@ -53,12 +53,12 @@ export const InvoiceBuilderPage: React.FC = () => {
 
   const [items, setItems] = useState<FormItem[]>([
     {
-      serviceName: "Inside Entry Permit",
-      description: "Visa applicant document processing",
+      serviceName: "",
+      description: "",
       quantity: 1,
-      unitRateAed: 1160,
+      unitRateAed: 0,
       discountAed: 0,
-      lineTotalAed: 1160,
+      lineTotalAed: 0,
     },
   ]);
 

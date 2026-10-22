@@ -50,12 +50,6 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
     address: "Al Garhoud, Dubai, United Arab Emirates",
     phone: "+971 50 585 6318",
     email: "info@immigralink.ae",
-    bankDetails: {
-      bankName: "Emirates NBD",
-      accountTitle: "IMMIGRA LINK BUSINESS SERVICES",
-      accountNumber: "1019283746501",
-      iban: "AE3402600001019283746501",
-    },
   };
 
   const formattedDate = new Date(invoice.issueDate).toLocaleDateString("en-GB", {
@@ -255,24 +249,18 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
         </div>
       </div>
 
-      {/* Footer Instructions, Bank details & Scannable QR */}
+      {/* Footer Instructions & Scannable QR */}
       <div className="border-t-2 border-slate-200 pt-6 mt-8 flex justify-between items-center text-xs">
-        {/* Bank transfer instructions */}
-        <div className="space-y-1 text-slate-600">
+        {/* Payment instructions */}
+        <div className="space-y-1 text-slate-600 max-w-md">
           <div className="font-bold text-slate-900 uppercase text-[10px] tracking-wider">
-            Bank Transfer Information
+            Payment & Settlement Instructions
           </div>
-          <div>
-            Bank: <strong>{company.bankDetails?.bankName || "Emirates NBD"}</strong>
-          </div>
-          <div>
-            Account Title: <strong>{company.bankDetails?.accountTitle || company.companyName}</strong>
-          </div>
-          <div>
-            IBAN: <strong className="font-mono">{company.bankDetails?.iban || "AE3402600001019283746501"}</strong>
-          </div>
-          <p className="text-[10px] text-slate-400 mt-2">
-            Please use invoice number <strong>{invoice.invoiceNumber}</strong> as reference for all transfers.
+          <p className="text-[11px] text-slate-600">
+            {invoice.paymentTerms || "Please settle payment via cash or direct transfer."}
+          </p>
+          <p className="text-[10px] text-slate-400 mt-1">
+            Please use invoice number <strong>{invoice.invoiceNumber}</strong> as reference for all payments.
           </p>
         </div>
 

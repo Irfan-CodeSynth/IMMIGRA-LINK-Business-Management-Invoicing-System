@@ -398,11 +398,11 @@ export declare const SettingsUpdateSchema: z.ZodObject<{
     isVatRegistered: z.ZodDefault<z.ZodBoolean>;
     currency: z.ZodDefault<z.ZodString>;
     timezone: z.ZodDefault<z.ZodString>;
-    bankDetails: z.ZodObject<{
-        bankName: z.ZodString;
-        accountTitle: z.ZodString;
-        accountNumber: z.ZodString;
-        iban: z.ZodString;
+    bankDetails: z.ZodOptional<z.ZodObject<{
+        bankName: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+        accountTitle: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+        accountNumber: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+        iban: z.ZodDefault<z.ZodOptional<z.ZodString>>;
         swiftCode: z.ZodOptional<z.ZodString>;
         branch: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
@@ -413,13 +413,13 @@ export declare const SettingsUpdateSchema: z.ZodObject<{
         swiftCode?: string | undefined;
         branch?: string | undefined;
     }, {
-        bankName: string;
-        accountTitle: string;
-        accountNumber: string;
-        iban: string;
+        bankName?: string | undefined;
+        accountTitle?: string | undefined;
+        accountNumber?: string | undefined;
+        iban?: string | undefined;
         swiftCode?: string | undefined;
         branch?: string | undefined;
-    }>;
+    }>>;
     invoicePrefix: z.ZodDefault<z.ZodString>;
     invoiceNextSequence: z.ZodDefault<z.ZodNumber>;
     invoiceDefaultNotes: z.ZodDefault<z.ZodOptional<z.ZodString>>;
@@ -436,32 +436,24 @@ export declare const SettingsUpdateSchema: z.ZodObject<{
     isVatRegistered: boolean;
     currency: string;
     timezone: string;
-    bankDetails: {
-        bankName: string;
-        accountTitle: string;
-        accountNumber: string;
-        iban: string;
-        swiftCode?: string | undefined;
-        branch?: string | undefined;
-    };
     invoicePrefix: string;
     invoiceNextSequence: number;
     invoiceDefaultNotes: string;
     invoicePaymentInstructions: string;
     website?: string | undefined;
-}, {
-    email: string;
-    phone: string;
-    companyName: string;
-    address: string;
-    bankDetails: {
+    bankDetails?: {
         bankName: string;
         accountTitle: string;
         accountNumber: string;
         iban: string;
         swiftCode?: string | undefined;
         branch?: string | undefined;
-    };
+    } | undefined;
+}, {
+    email: string;
+    phone: string;
+    companyName: string;
+    address: string;
     city?: string | undefined;
     tradeLicenseNumber?: string | undefined;
     trn?: string | undefined;
@@ -470,6 +462,14 @@ export declare const SettingsUpdateSchema: z.ZodObject<{
     isVatRegistered?: boolean | undefined;
     currency?: string | undefined;
     timezone?: string | undefined;
+    bankDetails?: {
+        bankName?: string | undefined;
+        accountTitle?: string | undefined;
+        accountNumber?: string | undefined;
+        iban?: string | undefined;
+        swiftCode?: string | undefined;
+        branch?: string | undefined;
+    } | undefined;
     invoicePrefix?: string | undefined;
     invoiceNextSequence?: number | undefined;
     invoiceDefaultNotes?: string | undefined;

@@ -7,6 +7,8 @@ dist/
 client/dist/
 build/
 */build/
+!client/dist/
+!client/dist/**
 !server/dist/
 !server/dist/**
 !shared/dist/

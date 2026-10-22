@@ -188,7 +188,7 @@ export const StaffPage: React.FC = () => {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Fatima Tariq"
+                  placeholder="e.g. Employee Full Name"
                   className="w-full border border-slate-300 rounded-lg p-2"
                 />
               </div>

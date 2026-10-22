@@ -73,8 +73,8 @@ https://immigra-link-business-management-invoicing-system.vercel.app
 ```
 
 ### Initial Administrative Login
-Upon your first visit, the system will automatically initialize the database with:
+Upon your first visit, the system initializes with a clean baseline:
 - **Email:** `admin@immigralink.ae`
 - **Password:** `admin123`
-- **Reference Invoice:** `INV/MAIN/1165` (AED 7,857.91)
-- **Official UAE Chart of Accounts & 10 Core Services**
+- **Clean Database:** No demo invoices, customers, or services (ready for your real data)
+- **Official UAE Chart of Accounts** (all balances start at AED 0.00)

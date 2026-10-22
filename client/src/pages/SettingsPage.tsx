@@ -4,7 +4,6 @@ import immigraLogo from "../assets/immigra-logo.jpg";
 import {
   Settings,
   Building,
-  CreditCard,
   FileText,
   Save,
   CheckCircle2,
@@ -25,13 +24,6 @@ export const SettingsPage: React.FC = () => {
   const [tradeLicenseNumber, setTradeLicenseNumber] = useState("CN-1094829");
   const [isVatRegistered, setIsVatRegistered] = useState(false);
 
-  // Bank
-  const [bankName, setBankName] = useState("Emirates NBD");
-  const [accountTitle, setAccountTitle] = useState("IMMIGRA LINK BUSINESS SERVICES");
-  const [accountNumber, setAccountNumber] = useState("1019283746501");
-  const [iban, setIban] = useState("AE3402600001019283746501");
-  const [swiftCode, setSwiftCode] = useState("EBIBAEAD");
-
   // Invoice Template
   const [invoicePrefix, setInvoicePrefix] = useState("INV-");
   const [invoiceNextSequence, setInvoiceNextSequence] = useState<number>(1);
@@ -39,7 +31,7 @@ export const SettingsPage: React.FC = () => {
     "Thank you for trusting Immigra Link Business Services. For questions regarding this invoice, contact info@immigralink.ae."
   );
   const [invoicePaymentInstructions, setInvoicePaymentInstructions] = useState(
-    "Please transfer payment to Emirates NBD (IBAN: AE3402600001019283746501) with invoice # reference."
+    "Please transfer payment via Bank or Cash with invoice # reference."
   );
 
   useEffect(() => {
@@ -55,13 +47,6 @@ export const SettingsPage: React.FC = () => {
           setWebsite(s.website || "");
           setTradeLicenseNumber(s.tradeLicenseNumber || "");
           setIsVatRegistered(s.isVatRegistered || false);
-          if (s.bankDetails) {
-            setBankName(s.bankDetails.bankName || "");
-            setAccountTitle(s.bankDetails.accountTitle || "");
-            setAccountNumber(s.bankDetails.accountNumber || "");
-            setIban(s.bankDetails.iban || "");
-            setSwiftCode(s.bankDetails.swiftCode || "");
-          }
           if (s.invoicePrefix) setInvoicePrefix(s.invoicePrefix);
           if (s.invoiceNextSequence) setInvoiceNextSequence(s.invoiceNextSequence);
           if (s.invoiceDefaultNotes) setInvoiceDefaultNotes(s.invoiceDefaultNotes);
@@ -93,13 +78,6 @@ export const SettingsPage: React.FC = () => {
         isVatRegistered,
         currency: "AED",
         timezone: "Asia/Dubai",
-        bankDetails: {
-          bankName,
-          accountTitle,
-          accountNumber,
-          iban,
-          swiftCode,
-        },
         invoicePrefix,
         invoiceNextSequence: Number(invoiceNextSequence) || 1,
         invoiceDefaultNotes,
@@ -253,59 +231,6 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Bank Transfer Details */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-200">
-            <CreditCard className="w-4 h-4 text-brand-gold" />
-            <span>Bank Transfer Coordinates (Printed on Invoices)</span>
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Bank Name</label>
-              <input
-                type="text"
-                required
-                value={bankName}
-                onChange={(e) => setBankName(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg p-2 font-bold"
-              />
-            </div>
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Account Title</label>
-              <input
-                type="text"
-                required
-                value={accountTitle}
-                onChange={(e) => setAccountTitle(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg p-2 font-semibold"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">Account Number</label>
-              <input
-                type="text"
-                required
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg p-2 font-mono"
-              />
-            </div>
-            <div>
-              <label className="block font-semibold text-slate-700 mb-1">IBAN Number</label>
-              <input
-                type="text"
-                required
-                value={iban}
-                onChange={(e) => setIban(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg p-2 font-mono font-bold text-brand-royal"
-              />
-            </div>
-          </div>
-        </div>
 
         {/* Invoicing Template Defaults */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">

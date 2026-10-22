@@ -45,12 +45,12 @@ export const QuotationBuilderPage: React.FC = () => {
 
   const [items, setItems] = useState<FormItem[]>([
     {
-      serviceName: "Golden Visa Consultancy",
-      description: "Full family file preparation and nomination processing",
+      serviceName: "",
+      description: "",
       quantity: 1,
-      unitRateAed: 2500,
+      unitRateAed: 0,
       discountAed: 0,
-      lineTotalAed: 2500,
+      lineTotalAed: 0,
     },
   ]);
 
