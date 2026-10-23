@@ -76,6 +76,7 @@ export interface IService {
 export interface IInvoiceItem {
   serviceId?: string;
   serviceName: string;
+  clientName?: string;
   description?: string;
   quantity: number;
   unitRateFils: number;
@@ -91,6 +92,8 @@ export interface IInvoice {
   customerSnapshot: {
     displayName: string;
     companyName?: string;
+    contactPerson?: string;
+    clientName?: string;
     phone: string;
     email?: string;
     address?: string;
@@ -123,6 +126,7 @@ export interface IInvoice {
 export interface IQuotationItem {
   serviceId?: string;
   serviceName: string;
+  clientName?: string;
   description?: string;
   quantity: number;
   unitRateFils: number;
@@ -137,6 +141,8 @@ export interface IQuotation {
   customerSnapshot: {
     displayName: string;
     companyName?: string;
+    contactPerson?: string;
+    clientName?: string;
     phone: string;
     email?: string;
     address?: string;

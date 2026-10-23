@@ -49,7 +49,8 @@ exports.ServiceSchema = zod_1.z.object({
 exports.InvoiceItemSchema = zod_1.z.object({
     serviceId: zod_1.z.string().optional(),
     serviceName: zod_1.z.string().min(1, "Service name is required"),
-    description: zod_1.z.string().optional(),
+    clientName: zod_1.z.string().optional().default(""),
+    description: zod_1.z.string().optional().default(""),
     quantity: zod_1.z.number().min(1, "Quantity must be at least 1"),
     unitRateAed: zod_1.z.number().min(0, "Unit rate cannot be negative"),
     discountAed: zod_1.z.number().min(0).default(0),

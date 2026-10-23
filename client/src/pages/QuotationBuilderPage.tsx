@@ -14,6 +14,7 @@ import { showAppAlert } from "../services/alertService";
 interface FormItem {
   serviceId?: string;
   serviceName: string;
+  clientName: string;
   description: string;
   quantity: number;
   unitRateAed: number;
@@ -46,6 +47,7 @@ export const QuotationBuilderPage: React.FC = () => {
   const [items, setItems] = useState<FormItem[]>([
     {
       serviceName: "",
+      clientName: "",
       description: "",
       quantity: 1,
       unitRateAed: 0,
@@ -119,6 +121,7 @@ export const QuotationBuilderPage: React.FC = () => {
       ...prev,
       {
         serviceName: "",
+        clientName: "",
         description: "",
         quantity: 1,
         unitRateAed: 0,
@@ -291,8 +294,9 @@ export const QuotationBuilderPage: React.FC = () => {
               <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
                 <tr>
                   <th className="py-2.5 px-3 w-8">#</th>
-                  <th className="py-2.5 px-3 w-56">Catalog Preset</th>
-                  <th className="py-2.5 px-3 w-48">Service Name *</th>
+                  <th className="py-2.5 px-3 w-48">Catalog Preset</th>
+                  <th className="py-2.5 px-3 w-44">Service Name *</th>
+                  <th className="py-2.5 px-3 w-40">Client / Customer Name</th>
                   <th className="py-2.5 px-3">Description</th>
                   <th className="py-2.5 px-3 w-20 text-center">Qty</th>
                   <th className="py-2.5 px-3 w-28 text-right">Rate (AED)</th>
@@ -329,7 +333,19 @@ export const QuotationBuilderPage: React.FC = () => {
                         onChange={(e) =>
                           handleItemChange(idx, "serviceName", e.target.value)
                         }
+                        placeholder="Service name"
                         className="w-full text-xs font-semibold border border-slate-200 rounded p-1.5"
+                      />
+                    </td>
+                    <td className="py-2 px-3">
+                      <input
+                        type="text"
+                        value={item.clientName}
+                        onChange={(e) =>
+                          handleItemChange(idx, "clientName", e.target.value)
+                        }
+                        placeholder="Client / Customer Name"
+                        className="w-full text-xs font-medium border border-slate-200 rounded p-1.5"
                       />
                     </td>
                     <td className="py-2 px-3">
@@ -339,6 +355,7 @@ export const QuotationBuilderPage: React.FC = () => {
                         onChange={(e) =>
                           handleItemChange(idx, "description", e.target.value)
                         }
+                        placeholder="Description / notes"
                         className="w-full text-xs border border-slate-200 rounded p-1.5"
                       />
                     </td>

@@ -51,7 +51,8 @@ export const ServiceSchema = z.object({
 export const InvoiceItemSchema = z.object({
   serviceId: z.string().optional(),
   serviceName: z.string().min(1, "Service name is required"),
-  description: z.string().optional(),
+  clientName: z.string().optional().default(""),
+  description: z.string().optional().default(""),
   quantity: z.number().min(1, "Quantity must be at least 1"),
   unitRateAed: z.number().min(0, "Unit rate cannot be negative"),
   discountAed: z.number().min(0).default(0),

@@ -128,16 +128,18 @@ export declare const ServiceSchema: z.ZodObject<{
 export declare const InvoiceItemSchema: z.ZodObject<{
     serviceId: z.ZodOptional<z.ZodString>;
     serviceName: z.ZodString;
-    description: z.ZodOptional<z.ZodString>;
+    clientName: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+    description: z.ZodDefault<z.ZodOptional<z.ZodString>>;
     quantity: z.ZodNumber;
     unitRateAed: z.ZodNumber;
     discountAed: z.ZodDefault<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
+    description: string;
     serviceName: string;
+    clientName: string;
     quantity: number;
     unitRateAed: number;
     discountAed: number;
-    description?: string | undefined;
     serviceId?: string | undefined;
 }, {
     serviceName: string;
@@ -145,6 +147,7 @@ export declare const InvoiceItemSchema: z.ZodObject<{
     unitRateAed: number;
     description?: string | undefined;
     serviceId?: string | undefined;
+    clientName?: string | undefined;
     discountAed?: number | undefined;
 }>;
 export declare const InvoiceCreateSchema: z.ZodObject<{
@@ -156,16 +159,18 @@ export declare const InvoiceCreateSchema: z.ZodObject<{
     items: z.ZodArray<z.ZodObject<{
         serviceId: z.ZodOptional<z.ZodString>;
         serviceName: z.ZodString;
-        description: z.ZodOptional<z.ZodString>;
+        clientName: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+        description: z.ZodDefault<z.ZodOptional<z.ZodString>>;
         quantity: z.ZodNumber;
         unitRateAed: z.ZodNumber;
         discountAed: z.ZodDefault<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
+        description: string;
         serviceName: string;
+        clientName: string;
         quantity: number;
         unitRateAed: number;
         discountAed: number;
-        description?: string | undefined;
         serviceId?: string | undefined;
     }, {
         serviceName: string;
@@ -173,6 +178,7 @@ export declare const InvoiceCreateSchema: z.ZodObject<{
         unitRateAed: number;
         description?: string | undefined;
         serviceId?: string | undefined;
+        clientName?: string | undefined;
         discountAed?: number | undefined;
     }>, "many">;
     notes: z.ZodOptional<z.ZodString>;
@@ -184,11 +190,12 @@ export declare const InvoiceCreateSchema: z.ZodObject<{
     issueDate: string;
     dueDate: string;
     items: {
+        description: string;
         serviceName: string;
+        clientName: string;
         quantity: number;
         unitRateAed: number;
         discountAed: number;
-        description?: string | undefined;
         serviceId?: string | undefined;
     }[];
     notes?: string | undefined;
@@ -205,6 +212,7 @@ export declare const InvoiceCreateSchema: z.ZodObject<{
         unitRateAed: number;
         description?: string | undefined;
         serviceId?: string | undefined;
+        clientName?: string | undefined;
         discountAed?: number | undefined;
     }[];
     status?: "DRAFT" | "ISSUED" | undefined;
@@ -220,16 +228,18 @@ export declare const QuotationCreateSchema: z.ZodObject<{
     items: z.ZodArray<z.ZodObject<{
         serviceId: z.ZodOptional<z.ZodString>;
         serviceName: z.ZodString;
-        description: z.ZodOptional<z.ZodString>;
+        clientName: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+        description: z.ZodDefault<z.ZodOptional<z.ZodString>>;
         quantity: z.ZodNumber;
         unitRateAed: z.ZodNumber;
         discountAed: z.ZodDefault<z.ZodNumber>;
     }, "strip", z.ZodTypeAny, {
+        description: string;
         serviceName: string;
+        clientName: string;
         quantity: number;
         unitRateAed: number;
         discountAed: number;
-        description?: string | undefined;
         serviceId?: string | undefined;
     }, {
         serviceName: string;
@@ -237,6 +247,7 @@ export declare const QuotationCreateSchema: z.ZodObject<{
         unitRateAed: number;
         description?: string | undefined;
         serviceId?: string | undefined;
+        clientName?: string | undefined;
         discountAed?: number | undefined;
     }>, "many">;
     notes: z.ZodOptional<z.ZodString>;
@@ -245,11 +256,12 @@ export declare const QuotationCreateSchema: z.ZodObject<{
     customerId: string;
     issueDate: string;
     items: {
+        description: string;
         serviceName: string;
+        clientName: string;
         quantity: number;
         unitRateAed: number;
         discountAed: number;
-        description?: string | undefined;
         serviceId?: string | undefined;
     }[];
     expiryDate: string;
@@ -264,6 +276,7 @@ export declare const QuotationCreateSchema: z.ZodObject<{
         unitRateAed: number;
         description?: string | undefined;
         serviceId?: string | undefined;
+        clientName?: string | undefined;
         discountAed?: number | undefined;
     }[];
     expiryDate: string;

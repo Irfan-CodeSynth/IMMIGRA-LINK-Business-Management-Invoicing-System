@@ -18,6 +18,7 @@ import { showAppAlert } from "../services/alertService";
 interface FormItem {
   serviceId?: string;
   serviceName: string;
+  clientName: string;
   description: string;
   quantity: number;
   unitRateAed: number;
@@ -54,6 +55,7 @@ export const InvoiceBuilderPage: React.FC = () => {
   const [items, setItems] = useState<FormItem[]>([
     {
       serviceName: "",
+      clientName: "",
       description: "",
       quantity: 1,
       unitRateAed: 0,
@@ -65,6 +67,7 @@ export const InvoiceBuilderPage: React.FC = () => {
   // Quick Customer Creation modal
   const [showQuickCustomerModal, setShowQuickCustomerModal] = useState(false);
   const [newCustName, setNewCustName] = useState("");
+  const [newCustContact, setNewCustContact] = useState("");
   const [newCustPhone, setNewCustPhone] = useState("");
   const [newCustType, setNewCustType] = useState<"INDIVIDUAL" | "BUSINESS">("BUSINESS");
 
@@ -137,6 +140,7 @@ export const InvoiceBuilderPage: React.FC = () => {
       ...prev,
       {
         serviceName: "",
+        clientName: "",
         description: "",
         quantity: 1,
         unitRateAed: 0,
@@ -176,6 +180,7 @@ export const InvoiceBuilderPage: React.FC = () => {
         customerType: newCustType,
         displayName: newCustName,
         companyName: newCustType === "BUSINESS" ? newCustName : undefined,
+        contactPerson: newCustContact || undefined,
         phone: newCustPhone,
       });
       if (res.data.success) {
@@ -183,6 +188,7 @@ export const InvoiceBuilderPage: React.FC = () => {
         setCustomerId(res.data.data._id);
         setShowQuickCustomerModal(false);
         setNewCustName("");
+        setNewCustContact("");
         setNewCustPhone("");
       }
     } catch (err: any) {
@@ -388,9 +394,10 @@ export const InvoiceBuilderPage: React.FC = () => {
               <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
                 <tr>
                   <th className="py-2.5 px-3 w-8">#</th>
-                  <th className="py-2.5 px-3 w-56">Catalog Preset</th>
-                  <th className="py-2.5 px-3 w-48">Service Name *</th>
-                  <th className="py-2.5 px-3">Description / Applicant</th>
+                  <th className="py-2.5 px-3 w-48">Catalog Preset</th>
+                  <th className="py-2.5 px-3 w-44">Service Name *</th>
+                  <th className="py-2.5 px-3 w-40">Client / Customer Name</th>
+                  <th className="py-2.5 px-3">Description</th>
                   <th className="py-2.5 px-3 w-20 text-center">Qty</th>
                   <th className="py-2.5 px-3 w-28 text-right">Rate (AED)</th>
                   <th className="py-2.5 px-3 w-24 text-right">Disc (AED)</th>
@@ -433,11 +440,22 @@ export const InvoiceBuilderPage: React.FC = () => {
                     <td className="py-2 px-3">
                       <input
                         type="text"
+                        value={item.clientName}
+                        onChange={(e) =>
+                          handleItemChange(idx, "clientName", e.target.value)
+                        }
+                        placeholder="Client / Customer Name"
+                        className="w-full text-xs font-medium border border-slate-200 rounded p-1.5"
+                      />
+                    </td>
+                    <td className="py-2 px-3">
+                      <input
+                        type="text"
                         value={item.description}
                         onChange={(e) =>
                           handleItemChange(idx, "description", e.target.value)
                         }
-                        placeholder="Applicant name / notes"
+                        placeholder="Description / notes"
                         className="w-full text-xs border border-slate-200 rounded p-1.5"
                       />
                     </td>
@@ -591,7 +609,7 @@ export const InvoiceBuilderPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {newCustType === "BUSINESS" ? "Company Name *" : "Full Name *"}
+                  {newCustType === "BUSINESS" ? "Company / Trading Name *" : "Full Name *"}
                 </label>
                 <input
                   type="text"
@@ -602,6 +620,21 @@ export const InvoiceBuilderPage: React.FC = () => {
                   className="w-full text-xs border border-slate-300 rounded-lg p-2"
                 />
               </div>
+
+              {newCustType === "BUSINESS" && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Client / Customer Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newCustContact}
+                    onChange={(e) => setNewCustContact(e.target.value)}
+                    placeholder="e.g. John Doe / Manager"
+                    className="w-full text-xs border border-slate-300 rounded-lg p-2"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">

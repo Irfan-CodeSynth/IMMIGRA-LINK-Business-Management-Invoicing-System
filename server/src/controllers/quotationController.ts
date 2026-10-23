@@ -83,6 +83,7 @@ export async function createQuotation(req: AuthenticatedRequest, res: Response):
       return {
         serviceId: item.serviceId as any,
         serviceName: item.serviceName,
+        clientName: item.clientName || "",
         description: item.description || "",
         quantity: item.quantity,
         unitRateFils,
@@ -99,7 +100,9 @@ export async function createQuotation(req: AuthenticatedRequest, res: Response):
       customerId: customer._id,
       customerSnapshot: {
         displayName: customer.displayName,
-        companyName: customer.companyName,
+        companyName: customer.companyName || (customer.customerType === "BUSINESS" ? customer.displayName : undefined),
+        contactPerson: customer.contactPerson || customer.displayName,
+        clientName: customer.contactPerson || customer.displayName,
         phone: customer.phone,
         email: customer.email,
         address: [customer.address?.street, customer.address?.city, customer.address?.emirate].filter(Boolean).join(", "),
@@ -226,6 +229,7 @@ export async function updateQuotation(req: AuthenticatedRequest, res: Response):
         return {
           serviceId: item.serviceId,
           serviceName: item.serviceName,
+          clientName: item.clientName || "",
           description: item.description || "",
           quantity: item.quantity || 1,
           unitRateFils,

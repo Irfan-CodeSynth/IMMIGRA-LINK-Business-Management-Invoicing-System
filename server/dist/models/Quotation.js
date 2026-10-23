@@ -42,6 +42,8 @@ const QuotationSchema = new mongoose_1.Schema({
     customerSnapshot: {
         displayName: { type: String, required: true },
         companyName: { type: String },
+        contactPerson: { type: String },
+        clientName: { type: String },
         phone: { type: String, required: true },
         email: { type: String },
         address: { type: String },
@@ -61,6 +63,7 @@ const QuotationSchema = new mongoose_1.Schema({
         {
             serviceId: { type: mongoose_1.Schema.Types.ObjectId, ref: "Service" },
             serviceName: { type: String, required: true },
+            clientName: { type: String, default: "" },
             description: { type: String },
             quantity: { type: Number, required: true, min: 1 },
             unitRateFils: { type: Number, required: true, min: 0 },

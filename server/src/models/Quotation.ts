@@ -20,6 +20,7 @@ export interface IQuotationDocument extends Document {
   items: {
     serviceId?: mongoose.Types.ObjectId;
     serviceName: string;
+    clientName?: string;
     description?: string;
     quantity: number;
     unitRateFils: number;
@@ -43,6 +44,8 @@ const QuotationSchema = new Schema<IQuotationDocument>(
     customerSnapshot: {
       displayName: { type: String, required: true },
       companyName: { type: String },
+      contactPerson: { type: String },
+      clientName: { type: String },
       phone: { type: String, required: true },
       email: { type: String },
       address: { type: String },
@@ -62,6 +65,7 @@ const QuotationSchema = new Schema<IQuotationDocument>(
       {
         serviceId: { type: Schema.Types.ObjectId, ref: "Service" },
         serviceName: { type: String, required: true },
+        clientName: { type: String, default: "" },
         description: { type: String },
         quantity: { type: Number, required: true, min: 1 },
         unitRateFils: { type: Number, required: true, min: 0 },

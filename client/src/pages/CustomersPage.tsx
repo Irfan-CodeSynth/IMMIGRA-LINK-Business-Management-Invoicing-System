@@ -272,8 +272,8 @@ export const CustomersPage: React.FC = () => {
                         {c.displayName}
                       </Link>
                       {c.contactPerson && (
-                        <span className="text-[10px] text-slate-400">
-                          Attn: {c.contactPerson}
+                        <span className="text-[11px] text-slate-500 font-medium block">
+                          Client: {c.contactPerson}
                         </span>
                       )}
                     </td>
@@ -400,12 +400,12 @@ export const CustomersPage: React.FC = () => {
               {customerType === CustomerType.BUSINESS && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-slate-700 mb-1">Contact Person</label>
+                    <label className="block font-semibold text-slate-700 mb-1">Customer / Client Name</label>
                     <input
                       type="text"
                       value={contactPerson}
                       onChange={(e) => setContactPerson(e.target.value)}
-                      placeholder="Manager / PRO"
+                      placeholder="e.g. Client / Person Name"
                       className="w-full border border-slate-300 rounded-lg p-2"
                     />
                   </div>
