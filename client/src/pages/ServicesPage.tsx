@@ -160,7 +160,7 @@ export const ServicesPage: React.FC = () => {
   const openAddModal = () => {
     setEditingService(null);
     setName("");
-    setCode(generateNextServiceCode());
+    setCode("");
     setCategory(categories[0] || "Visa Services");
     setIsCustomCategory(false);
     setCustomCategoryInput("");
@@ -206,7 +206,7 @@ export const ServicesPage: React.FC = () => {
       return;
     }
 
-    const cleanCode = code.trim().toUpperCase() || generateNextServiceCode();
+    const cleanCode = code.trim().toUpperCase() || undefined;
 
     // Resolve the final category value
     let finalCategory = category;
@@ -492,24 +492,13 @@ export const ServicesPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="font-semibold text-slate-700">Service Code *</label>
-                    <button
-                      type="button"
-                      onClick={() => setCode(generateNextServiceCode())}
-                      className="text-[10px] text-brand-royal hover:underline font-mono font-semibold"
-                      title="Generate unique code"
-                    >
-                      ⚡ Auto Code
-                    </button>
-                  </div>
+                  <label className="block font-semibold text-slate-700 mb-1">Service Code</label>
                   <input
                     type="text"
-                    required
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    placeholder="SRV-001"
-                    className="w-full font-mono font-bold border border-slate-300 rounded-lg p-2"
+                    placeholder="SRV-VISA-01"
+                    className="w-full font-mono border border-slate-300 rounded-lg p-2"
                   />
                 </div>
                 <div>

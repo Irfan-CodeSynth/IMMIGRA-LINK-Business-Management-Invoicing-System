@@ -37,7 +37,7 @@ exports.CustomerSchema = zod_1.z.object({
 });
 exports.ServiceSchema = zod_1.z.object({
     name: zod_1.z.string().min(2, "Service name is required"),
-    code: zod_1.z.string().min(2, "Service code is required"),
+    code: zod_1.z.string().optional().default(""),
     category: zod_1.z.string().min(1, "Category is required"),
     description: zod_1.z.string().optional(),
     defaultRateAed: zod_1.z.number().min(0, "Rate must be non-negative"),

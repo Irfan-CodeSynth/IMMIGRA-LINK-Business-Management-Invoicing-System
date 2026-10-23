@@ -96,7 +96,7 @@ export declare const CustomerSchema: z.ZodObject<{
 }>;
 export declare const ServiceSchema: z.ZodObject<{
     name: z.ZodString;
-    code: z.ZodString;
+    code: z.ZodDefault<z.ZodOptional<z.ZodString>>;
     category: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
     defaultRateAed: z.ZodNumber;
@@ -115,10 +115,10 @@ export declare const ServiceSchema: z.ZodObject<{
     isActive: boolean;
     description?: string | undefined;
 }, {
-    code: string;
     name: string;
     category: string;
     defaultRateAed: number;
+    code?: string | undefined;
     description?: string | undefined;
     costAed?: number | undefined;
     governmentFeesAed?: number | undefined;

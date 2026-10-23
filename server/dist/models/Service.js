@@ -37,7 +37,7 @@ exports.ServiceModel = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const ServiceSchema = new mongoose_1.Schema({
     name: { type: String, required: true, trim: true, index: true },
-    code: { type: String, required: true, unique: true, uppercase: true, trim: true },
+    code: { type: String, unique: true, sparse: true, uppercase: true, trim: true },
     category: { type: String, required: true, index: true },
     description: { type: String, trim: true },
     defaultRateFils: { type: Number, required: true, min: 0 },

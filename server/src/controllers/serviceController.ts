@@ -38,16 +38,27 @@ export async function createService(req: AuthenticatedRequest, res: Response): P
     }
 
     const { defaultRateAed, costAed, governmentFeesAed, ...rest } = parsed.data;
-    const cleanCode = rest.code.trim().toUpperCase();
+    let cleanCode = (rest.code || "").trim().toUpperCase();
 
-    // Check for duplicate code
-    const existing = await ServiceModel.findOne({ code: cleanCode });
-    if (existing) {
-      res.status(400).json({
-        success: false,
-        message: `Service code "${cleanCode}" is already in use. Please enter a unique code.`,
-      });
-      return;
+    // If code is not provided, generate a unique sequential code
+    if (!cleanCode) {
+      const count = await ServiceModel.countDocuments();
+      let num = count + 1;
+      cleanCode = `SRV-${num.toString().padStart(3, "0")}`;
+      while (await ServiceModel.exists({ code: cleanCode })) {
+        num++;
+        cleanCode = `SRV-${num.toString().padStart(3, "0")}`;
+      }
+    } else {
+      // Check for duplicate code
+      const existing = await ServiceModel.findOne({ code: cleanCode });
+      if (existing) {
+        res.status(400).json({
+          success: false,
+          message: `Service code "${cleanCode}" is already in use. Please enter a different code or leave it blank to auto-generate.`,
+        });
+        return;
+      }
     }
 
     const service = await ServiceModel.create({
@@ -83,19 +94,24 @@ export async function updateService(req: AuthenticatedRequest, res: Response): P
     }
 
     const { defaultRateAed, costAed, governmentFeesAed, ...rest } = parsed.data;
-    const cleanCode = rest.code.trim().toUpperCase();
+    let cleanCode = (rest.code || "").trim().toUpperCase();
 
-    // Check duplicate code on another service
-    const existing = await ServiceModel.findOne({
-      code: cleanCode,
-      _id: { $ne: req.params.id },
-    });
-    if (existing) {
-      res.status(400).json({
-        success: false,
-        message: `Service code "${cleanCode}" is already in use by another service.`,
+    // Check duplicate code on another service if provided
+    if (cleanCode) {
+      const existing = await ServiceModel.findOne({
+        code: cleanCode,
+        _id: { $ne: req.params.id },
       });
-      return;
+      if (existing) {
+        res.status(400).json({
+          success: false,
+          message: `Service code "${cleanCode}" is already in use by another service.`,
+        });
+        return;
+      }
+    } else {
+      const currentService = await ServiceModel.findById(req.params.id);
+      cleanCode = currentService?.code || `SRV-${Date.now().toString().slice(-4)}`;
     }
 
     const service = await ServiceModel.findByIdAndUpdate(
