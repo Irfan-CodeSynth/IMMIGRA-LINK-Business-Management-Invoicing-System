@@ -5,22 +5,38 @@ import {
   Briefcase,
   Plus,
   Search,
-  Filter,
-  CheckCircle,
-  XCircle,
   X,
   Edit2,
   Eye,
   Trash2,
+  Tag,
 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 import { showAppAlert } from "../services/alertService";
+
+const BUILTIN_CATEGORIES = Object.values(ServiceCategory);
+const CUSTOM_CATEGORY_KEY = "immigra_custom_categories";
+
+function loadCustomCategories(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(CUSTOM_CATEGORY_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveCustomCategories(cats: string[]) {
+  localStorage.setItem(CUSTOM_CATEGORY_KEY, JSON.stringify(cats));
+}
 
 export const ServicesPage: React.FC = () => {
   const [services, setServices] = useState<IService[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState("");
   const [search, setSearch] = useState("");
+
+  // Custom categories stored in localStorage
+  const [customCategories, setCustomCategories] = useState<string[]>(loadCustomCategories);
 
   // Modal
   const [showModal, setShowModal] = useState(false);
@@ -33,11 +49,17 @@ export const ServicesPage: React.FC = () => {
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [category, setCategory] = useState<string>(ServiceCategory.VISA);
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategoryInput, setCustomCategoryInput] = useState("");
   const [description, setDescription] = useState("");
   const [defaultRateAed, setDefaultRateAed] = useState<number>(500);
   const [costAed, setCostAed] = useState<number>(300);
   const [revenueAccountCode, setRevenueAccountCode] = useState("4020");
   const [submitting, setSubmitting] = useState(false);
+
+  // All categories = builtin + saved custom + any existing categories from database
+  const discoveredCategories = Array.from(new Set(services.map((s) => s.category).filter(Boolean)));
+  const allCategories = Array.from(new Set([...BUILTIN_CATEGORIES, ...customCategories, ...discoveredCategories]));
 
   const fetchServices = async () => {
     setLoading(true);
@@ -71,6 +93,8 @@ export const ServicesPage: React.FC = () => {
     setName("");
     setCode("");
     setCategory(ServiceCategory.VISA);
+    setIsCustomCategory(false);
+    setCustomCategoryInput("");
     setDescription("");
     setDefaultRateAed(500);
     setCostAed(300);
@@ -82,7 +106,17 @@ export const ServicesPage: React.FC = () => {
     setEditingService(s);
     setName(s.name);
     setCode(s.code);
-    setCategory(s.category);
+    // If the saved category is not in the builtin list, treat it as custom
+    const isBuiltin = BUILTIN_CATEGORIES.includes(s.category as ServiceCategory);
+    if (isBuiltin) {
+      setCategory(s.category);
+      setIsCustomCategory(false);
+      setCustomCategoryInput("");
+    } else {
+      setCategory("__custom__");
+      setIsCustomCategory(true);
+      setCustomCategoryInput(s.category);
+    }
     setDescription(s.description || "");
     setDefaultRateAed(s.defaultRateFils / 100);
     setCostAed((s.costFils || 0) / 100);
@@ -93,11 +127,30 @@ export const ServicesPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+
+    // Resolve the final category value
+    let finalCategory = category;
+    if (isCustomCategory) {
+      const trimmed = customCategoryInput.trim();
+      if (!trimmed) {
+        showAppAlert("Please enter a custom category name", "Category Required", "warning");
+        setSubmitting(false);
+        return;
+      }
+      finalCategory = trimmed;
+      // Save new custom category to localStorage if not already there
+      if (!BUILTIN_CATEGORIES.includes(trimmed as ServiceCategory) && !customCategories.includes(trimmed)) {
+        const updated = [...customCategories, trimmed];
+        setCustomCategories(updated);
+        saveCustomCategories(updated);
+      }
+    }
+
     try {
       const payload = {
         name,
         code,
-        category,
+        category: finalCategory,
         description,
         defaultRateAed: Number(defaultRateAed),
         costAed: Number(costAed || 0),
@@ -178,12 +231,7 @@ export const ServicesPage: React.FC = () => {
           >
             All Categories
           </button>
-          {[
-            ServiceCategory.VISA,
-            ServiceCategory.LABOUR_MOHRE,
-            ServiceCategory.BUSINESS_SETUP,
-            ServiceCategory.RTA_SERVICES,
-          ].map((cat) => (
+          {allCategories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
@@ -352,14 +400,54 @@ export const ServicesPage: React.FC = () => {
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Category *</label>
                   <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    value={isCustomCategory ? "__custom__" : category}
+                    onChange={(e) => {
+                      if (e.target.value === "__custom__") {
+                        setIsCustomCategory(true);
+                        setCategory("__custom__");
+                      } else {
+                        setIsCustomCategory(false);
+                        setCustomCategoryInput("");
+                        setCategory(e.target.value);
+                      }
+                    }}
                     className="w-full border border-slate-300 rounded-lg p-2"
                   >
-                    {Object.values(ServiceCategory).map((cat: any) => (
+                    {allCategories.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
+                    <option value="__custom__">➕ Add new category...</option>
                   </select>
+                  {isCustomCategory && (
+                    <div className="mt-2 flex gap-2 items-center">
+                      <input
+                        type="text"
+                        autoFocus
+                        value={customCategoryInput}
+                        onChange={(e) => setCustomCategoryInput(e.target.value)}
+                        placeholder="Enter new category name..."
+                        className="flex-1 border border-brand-gold rounded-lg p-2 text-xs font-semibold focus:ring-2 focus:ring-brand-gold/50"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCustomCategory(false);
+                          setCustomCategoryInput("");
+                          setCategory(ServiceCategory.VISA);
+                        }}
+                        className="text-slate-400 hover:text-red-500"
+                        title="Cancel custom category"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                  {customCategories.length > 0 && !isCustomCategory && (
+                    <div className="mt-1 text-[10px] text-slate-400 flex items-center gap-1">
+                      <Tag className="w-2.5 h-2.5" />
+                      {customCategories.length} custom {customCategories.length === 1 ? "category" : "categories"} saved
+                    </div>
+                  )}
                 </div>
               </div>
 

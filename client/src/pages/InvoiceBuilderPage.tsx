@@ -115,7 +115,7 @@ export const InvoiceBuilderPage: React.FC = () => {
         serviceId: srv._id,
         serviceName: srv.name,
         category: srv.category || "",
-        description: srv.description || srv.category,
+        description: srv.description || "",
         unitRateAed: srv.defaultRateFils / 100,
         lineTotalAed:
           copy[index].quantity * (srv.defaultRateFils / 100) -
