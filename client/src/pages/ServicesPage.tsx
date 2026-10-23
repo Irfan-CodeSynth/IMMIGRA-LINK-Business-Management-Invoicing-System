@@ -10,23 +10,41 @@ import {
   Eye,
   Trash2,
   Tag,
+  Settings2,
+  RotateCcw,
 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 import { showAppAlert } from "../services/alertService";
 
-const BUILTIN_CATEGORIES = Object.values(ServiceCategory);
-const CUSTOM_CATEGORY_KEY = "immigra_custom_categories";
+const DEFAULT_CATEGORIES: string[] = [
+  "Immigration Services",
+  "Visa Services",
+  "Labour and MOHRE Services",
+  "Business Setup",
+  "Document Clearing",
+  "Government Transactions",
+  "RTA Services",
+  "General Consultancy",
+  "Other Services",
+];
 
-function loadCustomCategories(): string[] {
+const CATEGORIES_STORAGE_KEY = "immigra_service_categories_list_v1";
+
+function loadSavedCategories(): string[] {
   try {
-    return JSON.parse(localStorage.getItem(CUSTOM_CATEGORY_KEY) || "[]");
-  } catch {
-    return [];
+    const raw = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (err) {
+    console.error("Error loading categories:", err);
   }
+  return DEFAULT_CATEGORIES;
 }
 
-function saveCustomCategories(cats: string[]) {
-  localStorage.setItem(CUSTOM_CATEGORY_KEY, JSON.stringify(cats));
+function saveSavedCategories(cats: string[]) {
+  localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(cats));
 }
 
 export const ServicesPage: React.FC = () => {
@@ -35,8 +53,10 @@ export const ServicesPage: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [search, setSearch] = useState("");
 
-  // Custom categories stored in localStorage
-  const [customCategories, setCustomCategories] = useState<string[]>(loadCustomCategories);
+  // Manageable categories list
+  const [categories, setCategories] = useState<string[]>(loadSavedCategories);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   // Modal
   const [showModal, setShowModal] = useState(false);
@@ -48,7 +68,7 @@ export const ServicesPage: React.FC = () => {
   // Form State
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
-  const [category, setCategory] = useState<string>(ServiceCategory.VISA);
+  const [category, setCategory] = useState<string>(() => loadSavedCategories()[0] || "Visa Services");
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [customCategoryInput, setCustomCategoryInput] = useState("");
   const [description, setDescription] = useState("");
@@ -57,9 +77,47 @@ export const ServicesPage: React.FC = () => {
   const [revenueAccountCode, setRevenueAccountCode] = useState("4020");
   const [submitting, setSubmitting] = useState(false);
 
-  // All categories = builtin + saved custom + any existing categories from database
-  const discoveredCategories = Array.from(new Set(services.map((s) => s.category).filter(Boolean)));
-  const allCategories = Array.from(new Set([...BUILTIN_CATEGORIES, ...customCategories, ...discoveredCategories]));
+  const handleAddCategory = (catName: string) => {
+    const trimmed = catName.trim();
+    if (!trimmed) {
+      showAppAlert("Please enter a category name", "Category Required", "warning");
+      return;
+    }
+    if (categories.some((c) => c.toLowerCase() === trimmed.toLowerCase())) {
+      showAppAlert(`Category "${trimmed}" already exists`, "Duplicate Category", "warning");
+      return;
+    }
+    const updated = [...categories, trimmed];
+    setCategories(updated);
+    saveSavedCategories(updated);
+    setCategory(trimmed);
+    setNewCategoryName("");
+    showAppAlert(`Added category "${trimmed}"`, "Category Added", "success");
+  };
+
+  const handleRemoveCategory = (catToRemove: string) => {
+    if (categories.length <= 1) {
+      showAppAlert("You must keep at least one category", "Cannot Remove", "warning");
+      return;
+    }
+    const updated = categories.filter((c) => c !== catToRemove);
+    setCategories(updated);
+    saveSavedCategories(updated);
+    if (category === catToRemove) {
+      setCategory(updated[0]);
+    }
+    if (categoryFilter === catToRemove) {
+      setCategoryFilter("");
+    }
+    showAppAlert(`Removed category "${catToRemove}"`, "Category Removed", "success");
+  };
+
+  const handleResetCategories = () => {
+    setCategories(DEFAULT_CATEGORIES);
+    saveSavedCategories(DEFAULT_CATEGORIES);
+    setCategory(DEFAULT_CATEGORIES[0]);
+    showAppAlert("Reset to standard categories", "Reset Complete", "info");
+  };
 
   const fetchServices = async () => {
     setLoading(true);
@@ -92,7 +150,7 @@ export const ServicesPage: React.FC = () => {
     setEditingService(null);
     setName("");
     setCode("");
-    setCategory(ServiceCategory.VISA);
+    setCategory(categories[0] || "Visa Services");
     setIsCustomCategory(false);
     setCustomCategoryInput("");
     setDescription("");
@@ -106,16 +164,18 @@ export const ServicesPage: React.FC = () => {
     setEditingService(s);
     setName(s.name);
     setCode(s.code);
-    // If the saved category is not in the builtin list, treat it as custom
-    const isBuiltin = BUILTIN_CATEGORIES.includes(s.category as ServiceCategory);
-    if (isBuiltin) {
+    if (categories.includes(s.category)) {
       setCategory(s.category);
       setIsCustomCategory(false);
       setCustomCategoryInput("");
     } else {
-      setCategory("__custom__");
-      setIsCustomCategory(true);
-      setCustomCategoryInput(s.category);
+      // Add existing service category to categories if not present
+      const updated = [...categories, s.category];
+      setCategories(updated);
+      saveSavedCategories(updated);
+      setCategory(s.category);
+      setIsCustomCategory(false);
+      setCustomCategoryInput("");
     }
     setDescription(s.description || "");
     setDefaultRateAed(s.defaultRateFils / 100);
@@ -138,11 +198,10 @@ export const ServicesPage: React.FC = () => {
         return;
       }
       finalCategory = trimmed;
-      // Save new custom category to localStorage if not already there
-      if (!BUILTIN_CATEGORIES.includes(trimmed as ServiceCategory) && !customCategories.includes(trimmed)) {
-        const updated = [...customCategories, trimmed];
-        setCustomCategories(updated);
-        saveCustomCategories(updated);
+      if (!categories.includes(trimmed)) {
+        const updated = [...categories, trimmed];
+        setCategories(updated);
+        saveSavedCategories(updated);
       }
     }
 
@@ -209,13 +268,23 @@ export const ServicesPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={openAddModal}
-          className="flex items-center gap-2 bg-brand-navy hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition border border-brand-gold/40 hover:border-brand-gold"
-        >
-          <Plus className="w-4 h-4 text-brand-gold" />
-          <span>Add New Service</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowCategoryManager(true)}
+            className="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-lg text-xs font-semibold shadow-xs transition border border-slate-300"
+          >
+            <Settings2 className="w-3.5 h-3.5 text-slate-500" />
+            <span>Manage Categories</span>
+          </button>
+          <button
+            onClick={openAddModal}
+            className="flex items-center gap-2 bg-brand-navy hover:bg-slate-900 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition border border-brand-gold/40 hover:border-brand-gold"
+          >
+            <Plus className="w-4 h-4 text-brand-gold" />
+            <span>Add New Service</span>
+          </button>
+        </div>
       </div>
 
       {/* Categories & Search */}
@@ -231,7 +300,7 @@ export const ServicesPage: React.FC = () => {
           >
             All Categories
           </button>
-          {allCategories.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
@@ -244,6 +313,15 @@ export const ServicesPage: React.FC = () => {
               {cat}
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setShowCategoryManager(true)}
+            className="px-2.5 py-1.5 rounded-lg text-xs text-slate-500 hover:text-brand-navy hover:bg-slate-100 transition border border-dashed border-slate-300 flex items-center gap-1 font-semibold"
+            title="Add or remove categories"
+          >
+            <Settings2 className="w-3.5 h-3.5" />
+            <span>Manage</span>
+          </button>
         </div>
 
         <form onSubmit={handleSearch} className="relative w-full md:w-72">
@@ -398,13 +476,25 @@ export const ServicesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Category *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">Category *</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowCategoryManager(true)}
+                      className="text-[11px] text-brand-royal hover:underline font-semibold flex items-center gap-1"
+                    >
+                      <Settings2 className="w-3 h-3" />
+                      <span>Manage / Remove</span>
+                    </button>
+                  </div>
                   <select
                     value={isCustomCategory ? "__custom__" : category}
                     onChange={(e) => {
                       if (e.target.value === "__custom__") {
                         setIsCustomCategory(true);
                         setCategory("__custom__");
+                      } else if (e.target.value === "__manage__") {
+                        setShowCategoryManager(true);
                       } else {
                         setIsCustomCategory(false);
                         setCustomCategoryInput("");
@@ -413,11 +503,35 @@ export const ServicesPage: React.FC = () => {
                     }}
                     className="w-full border border-slate-300 rounded-lg p-2"
                   >
-                    {allCategories.map((cat) => (
+                    {categories.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                     <option value="__custom__">➕ Add new category...</option>
+                    <option value="__manage__">⚙️ Remove / Manage categories...</option>
                   </select>
+
+                  {/* Quick Remove for currently selected category */}
+                  {!isCustomCategory && (
+                    <div className="mt-1 flex items-center justify-between text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCategory(category)}
+                        className="text-red-500 hover:text-red-700 font-medium inline-flex items-center gap-1 transition"
+                        title={`Remove "${category}" category`}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Remove "{category}"</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowCategoryManager(true)}
+                        className="text-slate-400 hover:text-brand-navy underline"
+                      >
+                        Manage All ({categories.length})
+                      </button>
+                    </div>
+                  )}
+
                   {isCustomCategory && (
                     <div className="mt-2 flex gap-2 items-center">
                       <input
@@ -433,19 +547,13 @@ export const ServicesPage: React.FC = () => {
                         onClick={() => {
                           setIsCustomCategory(false);
                           setCustomCategoryInput("");
-                          setCategory(ServiceCategory.VISA);
+                          setCategory(categories[0] || "Visa Services");
                         }}
                         className="text-slate-400 hover:text-red-500"
                         title="Cancel custom category"
                       >
                         <X className="w-4 h-4" />
                       </button>
-                    </div>
-                  )}
-                  {customCategories.length > 0 && !isCustomCategory && (
-                    <div className="mt-1 text-[10px] text-slate-400 flex items-center gap-1">
-                      <Tag className="w-2.5 h-2.5" />
-                      {customCategories.length} custom {customCategories.length === 1 ? "category" : "categories"} saved
                     </div>
                   )}
                 </div>
@@ -586,6 +694,105 @@ export const ServicesPage: React.FC = () => {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Categories Modal */}
+      {showCategoryManager && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-6 animate-in fade-in zoom-in-95 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Tag className="w-4 h-4 text-brand-gold" />
+                <span>Manage Service Categories</span>
+              </h3>
+              <button
+                onClick={() => setShowCategoryManager(false)}
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-md"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-slate-500 mb-3 text-[11px]">
+              Add new custom categories or remove categories you don't need from the catalog dropdown.
+            </p>
+
+            {/* Add Category Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAddCategory(newCategoryName);
+              }}
+              className="flex gap-2 mb-4"
+            >
+              <input
+                type="text"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="Enter new category name..."
+                className="flex-1 border border-slate-300 rounded-lg p-2 text-xs focus:ring-2 focus:ring-brand-gold/50"
+              />
+              <button
+                type="submit"
+                className="px-3.5 py-2 bg-brand-navy hover:bg-slate-900 text-white font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition"
+              >
+                <Plus className="w-3.5 h-3.5 text-brand-gold" />
+                <span>Add</span>
+              </button>
+            </form>
+
+            {/* Categories List */}
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Active Categories ({categories.length})
+            </div>
+            <div className="max-h-60 overflow-y-auto space-y-1.5 border border-slate-200 rounded-lg p-2 bg-slate-50/50 mb-4">
+              {categories.map((cat) => {
+                const count = services.filter((s) => s.category === cat).length;
+                return (
+                  <div
+                    key={cat}
+                    className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-slate-200/80 hover:border-slate-300 transition"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-slate-800">{cat}</span>
+                      {count > 0 && (
+                        <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono">
+                          {count} {count === 1 ? "service" : "services"}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCategory(cat)}
+                      title={`Remove "${cat}"`}
+                      className="text-slate-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
+              <button
+                type="button"
+                onClick={handleResetCategories}
+                className="text-[11px] text-slate-500 hover:text-slate-800 underline flex items-center gap-1"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset Defaults</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCategoryManager(false)}
+                className="px-4 py-2 bg-brand-navy hover:bg-slate-900 text-white font-bold rounded-lg shadow-sm"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>
