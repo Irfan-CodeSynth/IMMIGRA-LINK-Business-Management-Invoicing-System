@@ -34,12 +34,26 @@ async function createService(req, res) {
     try {
         const parsed = shared_2.ServiceSchema.safeParse(req.body);
         if (!parsed.success) {
-            res.status(400).json({ success: false, errors: parsed.error.flatten() });
+            const fieldErrors = parsed.error.flatten().fieldErrors;
+            const firstError = Object.values(fieldErrors).flat()[0] || "Invalid service data";
+            res.status(400).json({ success: false, message: firstError, errors: parsed.error.flatten() });
             return;
         }
         const { defaultRateAed, costAed, governmentFeesAed, ...rest } = parsed.data;
+        const cleanCode = rest.code.trim().toUpperCase();
+        // Check for duplicate code
+        const existing = await Service_1.ServiceModel.findOne({ code: cleanCode });
+        if (existing) {
+            res.status(400).json({
+                success: false,
+                message: `Service code "${cleanCode}" is already in use. Please enter a unique code.`,
+            });
+            return;
+        }
         const service = await Service_1.ServiceModel.create({
             ...rest,
+            name: rest.name.trim(),
+            code: cleanCode,
             defaultRateFils: (0, shared_1.aedToFils)(defaultRateAed),
             costFils: (0, shared_1.aedToFils)(costAed || 0),
             governmentFeesFils: (0, shared_1.aedToFils)(governmentFeesAed || 0),
@@ -47,20 +61,44 @@ async function createService(req, res) {
         res.status(201).json({ success: true, data: service });
     }
     catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        if (error.code === 11000) {
+            res.status(400).json({
+                success: false,
+                message: "A service with this code already exists. Please choose a unique service code.",
+            });
+            return;
+        }
+        res.status(500).json({ success: false, message: error.message || "Failed to create service" });
     }
 }
 async function updateService(req, res) {
     try {
         const parsed = shared_2.ServiceSchema.safeParse(req.body);
         if (!parsed.success) {
-            res.status(400).json({ success: false, errors: parsed.error.flatten() });
+            const fieldErrors = parsed.error.flatten().fieldErrors;
+            const firstError = Object.values(fieldErrors).flat()[0] || "Invalid service data";
+            res.status(400).json({ success: false, message: firstError, errors: parsed.error.flatten() });
             return;
         }
         const { defaultRateAed, costAed, governmentFeesAed, ...rest } = parsed.data;
+        const cleanCode = rest.code.trim().toUpperCase();
+        // Check duplicate code on another service
+        const existing = await Service_1.ServiceModel.findOne({
+            code: cleanCode,
+            _id: { $ne: req.params.id },
+        });
+        if (existing) {
+            res.status(400).json({
+                success: false,
+                message: `Service code "${cleanCode}" is already in use by another service.`,
+            });
+            return;
+        }
         const service = await Service_1.ServiceModel.findByIdAndUpdate(req.params.id, {
             $set: {
                 ...rest,
+                name: rest.name.trim(),
+                code: cleanCode,
                 defaultRateFils: (0, shared_1.aedToFils)(defaultRateAed),
                 costFils: (0, shared_1.aedToFils)(costAed || 0),
                 governmentFeesFils: (0, shared_1.aedToFils)(governmentFeesAed || 0),
@@ -73,7 +111,14 @@ async function updateService(req, res) {
         res.json({ success: true, data: service });
     }
     catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        if (error.code === 11000) {
+            res.status(400).json({
+                success: false,
+                message: "A service with this code already exists. Please choose a unique service code.",
+            });
+            return;
+        }
+        res.status(500).json({ success: false, message: error.message || "Failed to update service" });
     }
 }
 async function getService(req, res) {

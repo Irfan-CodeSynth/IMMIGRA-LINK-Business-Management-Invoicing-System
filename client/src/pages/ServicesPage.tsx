@@ -146,10 +146,21 @@ export const ServicesPage: React.FC = () => {
     fetchServices();
   };
 
+  const generateNextServiceCode = () => {
+    const existing = new Set(services.map((s) => s.code.toUpperCase()));
+    let num = services.length + 1;
+    let codeCandidate = `SRV-${num.toString().padStart(3, "0")}`;
+    while (existing.has(codeCandidate)) {
+      num++;
+      codeCandidate = `SRV-${num.toString().padStart(3, "0")}`;
+    }
+    return codeCandidate;
+  };
+
   const openAddModal = () => {
     setEditingService(null);
     setName("");
-    setCode("");
+    setCode(generateNextServiceCode());
     setCategory(categories[0] || "Visa Services");
     setIsCustomCategory(false);
     setCustomCategoryInput("");
@@ -188,6 +199,15 @@ export const ServicesPage: React.FC = () => {
     e.preventDefault();
     setSubmitting(true);
 
+    const cleanName = name.trim();
+    if (!cleanName) {
+      showAppAlert("Please enter a service title", "Title Required", "warning");
+      setSubmitting(false);
+      return;
+    }
+
+    const cleanCode = code.trim().toUpperCase() || generateNextServiceCode();
+
     // Resolve the final category value
     let finalCategory = category;
     if (isCustomCategory) {
@@ -203,17 +223,19 @@ export const ServicesPage: React.FC = () => {
         setCategories(updated);
         saveSavedCategories(updated);
       }
+    } else if (finalCategory === "__custom__" || finalCategory === "__manage__") {
+      finalCategory = categories[0] || "Visa Services";
     }
 
     try {
       const payload = {
-        name,
-        code,
+        name: cleanName,
+        code: cleanCode,
         category: finalCategory,
-        description,
-        defaultRateAed: Number(defaultRateAed),
-        costAed: Number(costAed || 0),
-        revenueAccountCode,
+        description: description.trim() || undefined,
+        defaultRateAed: Math.max(0, Number(defaultRateAed) || 0),
+        costAed: Math.max(0, Number(costAed) || 0),
+        revenueAccountCode: revenueAccountCode || "4020",
       };
 
       if (editingService) {
@@ -225,7 +247,12 @@ export const ServicesPage: React.FC = () => {
       setShowModal(false);
       await fetchServices();
     } catch (err: any) {
-      showAppAlert(err.response?.data?.message || "Failed to save service", "Save Failed", "error");
+      const errorData = err.response?.data;
+      let msg = errorData?.message;
+      if (!msg && errorData?.errors?.fieldErrors) {
+        msg = Object.values(errorData.errors.fieldErrors).flat().join(", ");
+      }
+      showAppAlert(msg || err.message || "Failed to save service", "Save Failed", "error");
     } finally {
       setSubmitting(false);
     }
@@ -465,14 +492,24 @@ export const ServicesPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Service Code *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700">Service Code *</label>
+                    <button
+                      type="button"
+                      onClick={() => setCode(generateNextServiceCode())}
+                      className="text-[10px] text-brand-royal hover:underline font-mono font-semibold"
+                      title="Generate unique code"
+                    >
+                      ⚡ Auto Code
+                    </button>
+                  </div>
                   <input
                     type="text"
                     required
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    placeholder="SRV-VISA-01"
-                    className="w-full font-mono border border-slate-300 rounded-lg p-2"
+                    placeholder="SRV-001"
+                    className="w-full font-mono font-bold border border-slate-300 rounded-lg p-2"
                   />
                 </div>
                 <div>

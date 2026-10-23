@@ -27,5 +27,8 @@
     "mern"
   ],
   "author": "IMMIGRA LINK BUSINESS SERVICES",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/wasm-node": "^4.65.0"
+  }
 }
