@@ -14,7 +14,9 @@ import { showAppAlert } from "../services/alertService";
 interface FormItem {
   serviceId?: string;
   serviceName: string;
+  companyName: string;
   clientName: string;
+  category: string;
   description: string;
   quantity: number;
   unitRateAed: number;
@@ -47,7 +49,9 @@ export const QuotationBuilderPage: React.FC = () => {
   const [items, setItems] = useState<FormItem[]>([
     {
       serviceName: "",
+      companyName: "",
       clientName: "",
+      category: "",
       description: "",
       quantity: 1,
       unitRateAed: 0,
@@ -91,6 +95,7 @@ export const QuotationBuilderPage: React.FC = () => {
         ...copy[index],
         serviceId: srv._id,
         serviceName: srv.name,
+        category: srv.category || "",
         description: srv.description || srv.category,
         unitRateAed: srv.defaultRateFils / 100,
         lineTotalAed:
@@ -121,7 +126,9 @@ export const QuotationBuilderPage: React.FC = () => {
       ...prev,
       {
         serviceName: "",
+        companyName: "",
         clientName: "",
+        category: "",
         description: "",
         quantity: 1,
         unitRateAed: 0,
@@ -170,6 +177,9 @@ export const QuotationBuilderPage: React.FC = () => {
         items: items.map((i) => ({
           serviceId: i.serviceId,
           serviceName: i.serviceName,
+          companyName: i.companyName,
+          clientName: i.clientName,
+          category: i.category,
           description: i.description,
           quantity: Number(i.quantity),
           unitRateAed: Number(i.unitRateAed),
@@ -296,8 +306,10 @@ export const QuotationBuilderPage: React.FC = () => {
                   <th className="py-2.5 px-3 w-8">#</th>
                   <th className="py-2.5 px-3 w-48">Catalog Preset</th>
                   <th className="py-2.5 px-3 w-44">Service Name *</th>
-                  <th className="py-2.5 px-3 w-40">Client / Customer Name</th>
+                  <th className="py-2.5 px-3 w-36">Company Name</th>
+                  <th className="py-2.5 px-3 w-36">Client Name</th>
                   <th className="py-2.5 px-3">Description</th>
+                  <th className="py-2.5 px-3 w-28">Category</th>
                   <th className="py-2.5 px-3 w-20 text-center">Qty</th>
                   <th className="py-2.5 px-3 w-28 text-right">Rate (AED)</th>
                   <th className="py-2.5 px-3 w-24 text-right">Disc (AED)</th>
@@ -340,11 +352,22 @@ export const QuotationBuilderPage: React.FC = () => {
                     <td className="py-2 px-3">
                       <input
                         type="text"
+                        value={item.companyName}
+                        onChange={(e) =>
+                          handleItemChange(idx, "companyName", e.target.value)
+                        }
+                        placeholder="Company Name"
+                        className="w-full text-xs border border-slate-200 rounded p-1.5"
+                      />
+                    </td>
+                    <td className="py-2 px-3">
+                      <input
+                        type="text"
                         value={item.clientName}
                         onChange={(e) =>
                           handleItemChange(idx, "clientName", e.target.value)
                         }
-                        placeholder="Client / Customer Name"
+                        placeholder="Client Name"
                         className="w-full text-xs font-medium border border-slate-200 rounded p-1.5"
                       />
                     </td>
@@ -355,7 +378,18 @@ export const QuotationBuilderPage: React.FC = () => {
                         onChange={(e) =>
                           handleItemChange(idx, "description", e.target.value)
                         }
-                        placeholder="Description / notes"
+                        placeholder="Description (optional)"
+                        className="w-full text-xs border border-slate-200 rounded p-1.5"
+                      />
+                    </td>
+                    <td className="py-2 px-3">
+                      <input
+                        type="text"
+                        value={item.category}
+                        onChange={(e) =>
+                          handleItemChange(idx, "category", e.target.value)
+                        }
+                        placeholder="Category"
                         className="w-full text-xs border border-slate-200 rounded p-1.5"
                       />
                     </td>

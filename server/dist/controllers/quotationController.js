@@ -85,7 +85,9 @@ async function createQuotation(req, res) {
             return {
                 serviceId: item.serviceId,
                 serviceName: item.serviceName,
+                companyName: item.companyName || "",
                 clientName: item.clientName || "",
+                category: item.category || "",
                 description: item.description || "",
                 quantity: item.quantity,
                 unitRateFils,
@@ -153,7 +155,6 @@ async function convertQuotationToInvoice(req, res) {
             customerSnapshot: quotation.customerSnapshot,
             issueDate: new Date(),
             dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days default
-            referenceNote: `Converted from Quotation ${quotation.quotationNumber}`,
             status: shared_1.InvoiceStatus.ISSUED,
             subtotalFils: quotation.subtotalFils,
             discountFils: quotation.discountFils,
@@ -218,7 +219,9 @@ async function updateQuotation(req, res) {
                 return {
                     serviceId: item.serviceId,
                     serviceName: item.serviceName,
+                    companyName: item.companyName || "",
                     clientName: item.clientName || "",
+                    category: item.category || "",
                     description: item.description || "",
                     quantity: item.quantity || 1,
                     unitRateFils,

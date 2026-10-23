@@ -135,18 +135,6 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
           <div className="font-bold text-slate-900 text-sm">
             {invoice.customerSnapshot?.companyName || invoice.customerSnapshot?.displayName}
           </div>
-          {(invoice.customerSnapshot?.contactPerson || invoice.customerSnapshot?.clientName || (invoice.customerSnapshot?.companyName && invoice.customerSnapshot?.displayName)) && (
-            <div className="text-slate-800 font-semibold text-xs mt-0.5">
-              <span className="text-slate-500 font-medium">Customer / Client: </span>
-              {invoice.customerSnapshot?.contactPerson || invoice.customerSnapshot?.clientName || invoice.customerSnapshot?.displayName}
-            </div>
-          )}
-          {invoice.referenceNote && (
-            <div className="text-slate-600 text-xs mt-0.5">
-              <span className="text-slate-500 font-medium">Description: </span>
-              {invoice.referenceNote}
-            </div>
-          )}
           <div className="text-slate-600 mt-1">
             Contact No: <strong>{invoice.customerSnapshot?.phone}</strong>
           </div>
@@ -166,8 +154,10 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
             <tr className="bg-brand-navy text-white font-semibold text-[11px] uppercase tracking-wider">
               <th className="py-2.5 px-3 w-10 text-center">#</th>
               <th className="py-2.5 px-3">Service</th>
-              <th className="py-2.5 px-3">Client / Customer Name</th>
+              <th className="py-2.5 px-3">Company Name</th>
+              <th className="py-2.5 px-3">Client Name</th>
               <th className="py-2.5 px-3">Description</th>
+              <th className="py-2.5 px-3">Category</th>
               <th className="py-2.5 px-3 text-center w-14">Qty</th>
               <th className="py-2.5 px-3 text-right w-24">Fees/Rate</th>
               <th className="py-2.5 px-3 text-right w-28">Total</th>
@@ -185,10 +175,14 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
                 <td className="py-2.5 px-3 font-semibold text-slate-900">
                   {item.serviceName}
                 </td>
+                <td className="py-2.5 px-3 text-slate-700">
+                  {item.companyName || invoice.customerSnapshot?.companyName || "—"}
+                </td>
                 <td className="py-2.5 px-3 font-medium text-slate-800">
-                  {item.clientName || invoice.customerSnapshot?.contactPerson || invoice.customerSnapshot?.displayName || "—"}
+                  {item.clientName || "—"}
                 </td>
                 <td className="py-2.5 px-3 text-slate-600">{item.description || "—"}</td>
+                <td className="py-2.5 px-3 text-slate-600">{item.category || "—"}</td>
                 <td className="py-2.5 px-3 text-center font-medium">{item.quantity}</td>
                 <td className="py-2.5 px-3 text-right font-mono">
                   {formatAed(item.unitRateFils)}

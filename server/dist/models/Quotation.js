@@ -63,7 +63,9 @@ const QuotationSchema = new mongoose_1.Schema({
         {
             serviceId: { type: mongoose_1.Schema.Types.ObjectId, ref: "Service" },
             serviceName: { type: String, required: true },
+            companyName: { type: String, default: "" },
             clientName: { type: String, default: "" },
+            category: { type: String, default: "" },
             description: { type: String },
             quantity: { type: Number, required: true, min: 1 },
             unitRateFils: { type: Number, required: true, min: 0 },

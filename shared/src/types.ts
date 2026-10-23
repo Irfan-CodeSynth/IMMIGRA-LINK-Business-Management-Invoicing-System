@@ -76,7 +76,9 @@ export interface IService {
 export interface IInvoiceItem {
   serviceId?: string;
   serviceName: string;
+  companyName?: string;
   clientName?: string;
+  category?: string;
   description?: string;
   quantity: number;
   unitRateFils: number;
@@ -126,7 +128,9 @@ export interface IInvoice {
 export interface IQuotationItem {
   serviceId?: string;
   serviceName: string;
+  companyName?: string;
   clientName?: string;
+  category?: string;
   description?: string;
   quantity: number;
   unitRateFils: number;

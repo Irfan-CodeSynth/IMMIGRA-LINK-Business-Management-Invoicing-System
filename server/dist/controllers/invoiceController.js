@@ -147,7 +147,9 @@ async function createInvoice(req, res) {
             return {
                 serviceId: item.serviceId,
                 serviceName: item.serviceName,
+                companyName: item.companyName || "",
                 clientName: item.clientName || "",
+                category: item.category || "",
                 description: item.description || "",
                 quantity: item.quantity,
                 unitRateFils,
@@ -353,7 +355,9 @@ async function updateInvoice(req, res) {
                 return {
                     serviceId: item.serviceId,
                     serviceName: item.serviceName,
+                    companyName: item.companyName || "",
                     clientName: item.clientName || "",
+                    category: item.category || "",
                     description: item.description || "",
                     quantity: item.quantity || 1,
                     unitRateFils,

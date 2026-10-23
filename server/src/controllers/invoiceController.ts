@@ -149,7 +149,9 @@ export async function createInvoice(req: AuthenticatedRequest, res: Response): P
       return {
         serviceId: item.serviceId,
         serviceName: item.serviceName,
+        companyName: (item as any).companyName || "",
         clientName: item.clientName || "",
+        category: (item as any).category || "",
         description: item.description || "",
         quantity: item.quantity,
         unitRateFils,
@@ -379,7 +381,9 @@ export async function updateInvoice(req: AuthenticatedRequest, res: Response): P
         return {
           serviceId: item.serviceId,
           serviceName: item.serviceName,
+          companyName: item.companyName || "",
           clientName: item.clientName || "",
+          category: item.category || "",
           description: item.description || "",
           quantity: item.quantity || 1,
           unitRateFils,
