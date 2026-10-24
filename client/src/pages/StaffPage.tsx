@@ -242,7 +242,7 @@ export const StaffPage: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="staff@immigralink.ae"
+                  placeholder="employee@company.com"
                   className="w-full border border-slate-300 rounded-lg p-2"
                 />
               </div>

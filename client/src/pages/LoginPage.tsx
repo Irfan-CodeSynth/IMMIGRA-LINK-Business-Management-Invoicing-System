@@ -5,8 +5,8 @@ import immigraLogo from "../assets/immigra-logo.jpg";
 import { Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 export const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState("admin@immigralink.ae");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("info.deepxaisol@gmail.com");
+  const [password, setPassword] = useState("DeepX)88##");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,9 +27,9 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleQuickLogin = (quickEmail: string) => {
+  const handleQuickLogin = (quickEmail: string, quickPass: string) => {
     setEmail(quickEmail);
-    setPassword("admin123");
+    setPassword(quickPass);
   };
 
   return (
@@ -82,7 +82,7 @@ export const LoginPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold transition text-slate-900"
-                  placeholder="admin@immigralink.ae"
+                  placeholder="info.deepxaisol@gmail.com"
                 />
               </div>
             </div>
@@ -120,37 +120,19 @@ export const LoginPage: React.FC = () => {
             </button>
           </form>
 
-          {/* Quick Demo Switcher */}
+          {/* Quick Access */}
           <div className="mt-6 pt-5 border-t border-slate-200">
             <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-center mb-2.5">
-              Instant Staff Profiles (Demo)
+              Super Admin Quick Fill
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("admin@immigralink.ae")}
-                className="px-2 py-1.5 text-[10px] font-medium rounded border border-slate-200 hover:border-brand-gold hover:bg-amber-50/50 text-slate-700 flex flex-col items-center gap-1 transition"
-              >
-                <CheckCircle2 className="w-3 h-3 text-brand-gold" />
-                <span>Super Admin</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("accountant@immigralink.ae")}
-                className="px-2 py-1.5 text-[10px] font-medium rounded border border-slate-200 hover:border-brand-gold hover:bg-amber-50/50 text-slate-700 flex flex-col items-center gap-1 transition"
-              >
-                <CheckCircle2 className="w-3 h-3 text-brand-gold" />
-                <span>Accountant</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("consultant@immigralink.ae")}
-                className="px-2 py-1.5 text-[10px] font-medium rounded border border-slate-200 hover:border-brand-gold hover:bg-amber-50/50 text-slate-700 flex flex-col items-center gap-1 transition"
-              >
-                <CheckCircle2 className="w-3 h-3 text-brand-gold" />
-                <span>Consultant</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => handleQuickLogin("info.deepxaisol@gmail.com", "DeepX)88##")}
+              className="w-full px-3 py-2 text-xs font-semibold rounded-lg border border-slate-200 hover:border-brand-gold hover:bg-amber-50/50 text-slate-800 flex items-center justify-center gap-2 transition"
+            >
+              <CheckCircle2 className="w-4 h-4 text-brand-gold" />
+              <span>DeepX Admin (info.deepxaisol@gmail.com)</span>
+            </button>
           </div>
         </div>
       </div>

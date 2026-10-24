@@ -6,31 +6,56 @@ import { UserRole, DEFAULT_CHART_OF_ACCOUNTS } from "@immigra/shared";
 
 /**
  * Initializes essential system baseline:
- * 1. Root Super Admin account (admin@immigralink.ae)
+ * 1. Root Super Admin account (DeepX Admin - info.deepxaisol@gmail.com)
  * 2. Official Company Profile & Settings (starts at sequence #1, clean non-demo state)
  * 3. Base Chart of Accounts structure with zero balances
  *
  * NOTE: Absolutely NO demo customers, demo invoices, demo staff, or demo services are seeded.
  */
 export async function seedDatabase(): Promise<void> {
-  // Check if admin already exists
-  const existingAdmin = await UserModel.findOne({ email: "admin@immigralink.ae" });
-  if (existingAdmin) {
-    return;
-  }
-
-  console.log("[Seeder] Initializing clean baseline for IMMIGRA LINK BUSINESS SERVICES...");
-
-  // 1. Root Super Admin
-  const passwordHash = await bcrypt.hash("admin123", 10);
-  await UserModel.create({
-    name: "System Administrator",
-    email: "admin@immigralink.ae",
-    passwordHash,
-    role: UserRole.SUPER_ADMIN,
-    phone: "+971 50 585 6318",
-    isActive: true,
+  // 1. Remove all legacy/demo admin accounts
+  await UserModel.deleteMany({
+    email: { $ne: "info.deepxaisol@gmail.com" },
+    $or: [
+      {
+        email: {
+          $in: [
+            "admin@immigralink.ae",
+            "waheed@immigralink.ae",
+            "accountant@immigralink.ae",
+            "consultant@immigralink.ae",
+          ],
+        },
+      },
+      { email: /waheed/i },
+      { name: /waheed/i },
+      { email: /admin@immigralink/i },
+    ],
   });
+
+  // 2. Ensure DeepX Admin is the primary Super Admin
+  const deepXEmail = "info.deepxaisol@gmail.com";
+  const deepXPasswordHash = await bcrypt.hash("DeepX)88##", 10);
+  const existingDeepX = await UserModel.findOne({ email: deepXEmail });
+
+  if (!existingDeepX) {
+    await UserModel.create({
+      name: "DeepX Admin",
+      email: deepXEmail,
+      passwordHash: deepXPasswordHash,
+      role: UserRole.SUPER_ADMIN,
+      phone: "",
+      isActive: true,
+    });
+    console.log("[Seeder] Created Super Admin account: DeepX Admin (info.deepxaisol@gmail.com)");
+  } else {
+    existingDeepX.name = "DeepX Admin";
+    existingDeepX.passwordHash = deepXPasswordHash;
+    existingDeepX.role = UserRole.SUPER_ADMIN;
+    existingDeepX.phone = "";
+    existingDeepX.isActive = true;
+    await existingDeepX.save();
+  }
 
   // 2. Company Settings (Clean baseline)
   const existingSettings = await CompanySettingsModel.findOne();
