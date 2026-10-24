@@ -197,16 +197,14 @@ export const QuotationsPage: React.FC = () => {
                           <Eye className="w-3 h-3 text-slate-500" />
                           <span>View</span>
                         </button>
-                        {q.status !== "CONVERTED" && (
-                          <button
-                            onClick={() => openEditQuotation(q)}
-                            title="Edit Quotation"
-                            className="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 inline-flex items-center gap-1 font-semibold text-[11px] transition shadow-xs"
-                          >
-                            <Edit2 className="w-3 h-3 text-blue-600" />
-                            <span>Edit</span>
-                          </button>
-                        )}
+                        <Link
+                          to={`/quotations/${q._id}/edit`}
+                          title="Edit Full Quotation"
+                          className="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 inline-flex items-center gap-1 font-semibold text-[11px] transition shadow-xs"
+                        >
+                          <Edit2 className="w-3 h-3 text-blue-600" />
+                          <span>Edit</span>
+                        </Link>
                         <button
                           onClick={() => setDeletingQuotation(q)}
                           title="Delete Quotation"

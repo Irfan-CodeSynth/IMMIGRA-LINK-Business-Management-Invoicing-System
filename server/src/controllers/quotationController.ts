@@ -211,12 +211,26 @@ export async function updateQuotation(req: AuthenticatedRequest, res: Response):
       return;
     }
 
-    if (quotation.status === QuotationStatus.CONVERTED) {
-      res.status(400).json({ success: false, message: "Cannot edit a quotation that has already been converted to an invoice" });
-      return;
-    }
+    const { customerId, issueDate, expiryDate, status, items, notes, termsAndConditions } = req.body;
 
-    const { status, items, notes, termsAndConditions, expiryDate } = req.body;
+    if (customerId && customerId !== quotation.customerId?.toString()) {
+      const customer = await CustomerModel.findById(customerId);
+      if (customer) {
+        quotation.customerId = customer._id;
+        quotation.customerSnapshot = {
+          displayName: customer.displayName,
+          companyName: customer.companyName || (customer.customerType === "BUSINESS" ? customer.displayName : undefined),
+          contactPerson: customer.contactPerson || customer.displayName,
+          clientName: customer.contactPerson || customer.displayName,
+          phone: customer.phone,
+          email: customer.email,
+          address: [customer.address?.street, customer.address?.city, customer.address?.emirate]
+            .filter(Boolean)
+            .join(", "),
+          trn: customer.trn,
+        };
+      }
+    }
 
     if (items && Array.isArray(items)) {
       let subtotalFils = 0;
@@ -248,12 +262,25 @@ export async function updateQuotation(req: AuthenticatedRequest, res: Response):
       quotation.amountInWords = numberToAedWords(grandTotalFils, true);
     }
 
+    if (issueDate) quotation.issueDate = new Date(issueDate);
+    if (expiryDate) quotation.expiryDate = new Date(expiryDate);
     if (status) quotation.status = status;
     if (notes !== undefined) quotation.notes = notes;
     if (termsAndConditions !== undefined) quotation.termsAndConditions = termsAndConditions;
-    if (expiryDate) quotation.expiryDate = new Date(expiryDate);
 
     await quotation.save();
+
+    if (req.user) {
+      await AuditLogModel.create({
+        userId: req.user.userId,
+        userName: req.user.name,
+        action: "UPDATE_QUOTATION",
+        entityType: "QUOTATION",
+        entityId: quotation._id.toString(),
+        details: { quotationNumber: quotation.quotationNumber },
+      });
+    }
+
     res.json({ success: true, data: quotation });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

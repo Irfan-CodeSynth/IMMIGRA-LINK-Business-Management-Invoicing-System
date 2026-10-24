@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { api } from "../services/api";
 import { formatAed, numberToAedWords, ICustomer, IService } from "@immigra/shared";
 import {
@@ -30,6 +30,10 @@ interface FormItem {
 
 export const InvoiceBuilderPage: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id?: string }>();
+  const isEditMode = Boolean(id);
+  const [existingInvoiceNumber, setExistingInvoiceNumber] = useState<string>("");
+  const [existingStatus, setExistingStatus] = useState<string>("ISSUED");
 
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [services, setServices] = useState<IService[]>([]);
@@ -81,19 +85,53 @@ export const InvoiceBuilderPage: React.FC = () => {
         const [custRes, srvRes, nextNumRes] = await Promise.all([
           api.get("/customers?limit=100"),
           api.get("/services?activeOnly=true"),
-          api.get("/invoices/next-number").catch(() => null),
+          !id ? api.get("/invoices/next-number").catch(() => null) : Promise.resolve(null),
         ]);
         if (custRes.data.success) {
           setCustomers(custRes.data.data.customers);
-          if (custRes.data.data.customers.length > 0) {
-            setCustomerId(custRes.data.data.customers[0]._id);
-          }
         }
         if (srvRes.data.success) {
           setServices(srvRes.data.data);
         }
-        if (nextNumRes?.data?.success && nextNumRes.data.data?.nextInvoiceNumber) {
-          setNextInvoiceNumber(nextNumRes.data.data.nextInvoiceNumber);
+
+        if (id) {
+          const invRes = await api.get(`/invoices/${id}`);
+          if (invRes.data.success) {
+            const inv = invRes.data.data;
+            setExistingInvoiceNumber(inv.invoiceNumber);
+            setExistingStatus(inv.status);
+            setCustomerId(inv.customerId || "");
+            if (inv.issueDate) setIssueDate(new Date(inv.issueDate).toISOString().split("T")[0]);
+            if (inv.dueDate) setDueDate(new Date(inv.dueDate).toISOString().split("T")[0]);
+            if (inv.supplyDate) setSupplyDate(new Date(inv.supplyDate).toISOString().split("T")[0]);
+            setReferenceNote(inv.referenceNote || "");
+            setNotes(inv.notes || "");
+            setPaymentTerms(inv.paymentTerms || "");
+
+            if (inv.items && inv.items.length > 0) {
+              setItems(
+                inv.items.map((i: any) => ({
+                  serviceId: i.serviceId,
+                  serviceName: i.serviceName || "",
+                  companyName: i.companyName || "",
+                  clientName: i.clientName || "",
+                  category: i.category || "",
+                  description: i.description || "",
+                  quantity: i.quantity || 1,
+                  unitRateAed: (i.unitRateFils || 0) / 100,
+                  discountAed: (i.discountFils || 0) / 100,
+                  lineTotalAed: (i.lineTotalFils || 0) / 100,
+                }))
+              );
+            }
+          }
+        } else {
+          if (custRes.data.success && custRes.data.data.customers.length > 0) {
+            setCustomerId(custRes.data.data.customers[0]._id);
+          }
+          if (nextNumRes?.data?.success && nextNumRes.data.data?.nextInvoiceNumber) {
+            setNextInvoiceNumber(nextNumRes.data.data.nextInvoiceNumber);
+          }
         }
       } catch (err) {
         console.error("Error loading builder data:", err);
@@ -102,7 +140,7 @@ export const InvoiceBuilderPage: React.FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [id]);
 
   const handleServiceSelect = (index: number, serviceId: string) => {
     const srv = services.find((s) => s._id === serviceId);
@@ -208,7 +246,7 @@ export const InvoiceBuilderPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (status: "DRAFT" | "ISSUED") => {
+  const handleSubmit = async (statusOverride?: "DRAFT" | "ISSUED") => {
     if (!customerId) {
       showAppAlert("Please select a customer for this invoice", "Customer Required", "warning");
       return;
@@ -220,6 +258,7 @@ export const InvoiceBuilderPage: React.FC = () => {
 
     setSubmitting(true);
     try {
+      const targetStatus = statusOverride || existingStatus || "ISSUED";
       const payload = {
         customerId,
         issueDate,
@@ -239,15 +278,23 @@ export const InvoiceBuilderPage: React.FC = () => {
         })),
         notes,
         paymentTerms,
-        status,
+        status: targetStatus,
       };
 
-      const res = await api.post("/invoices", payload);
-      if (res.data.success) {
-        navigate(`/invoices/${res.data.data._id}`);
+      if (id) {
+        const res = await api.put(`/invoices/${id}`, payload);
+        if (res.data.success) {
+          showAppAlert("Invoice updated successfully!", "Saved", "success");
+          navigate(`/invoices/${id}`);
+        }
+      } else {
+        const res = await api.post("/invoices", payload);
+        if (res.data.success) {
+          navigate(`/invoices/${res.data.data._id}`);
+        }
       }
     } catch (err: any) {
-      showAppAlert(err.response?.data?.message || "Failed to create invoice", "Creation Failed", "error");
+      showAppAlert(err.response?.data?.message || (id ? "Failed to update invoice" : "Failed to create invoice"), "Error", "error");
     } finally {
       setSubmitting(false);
     }
@@ -275,10 +322,10 @@ export const InvoiceBuilderPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-                Create New Invoice
+                {isEditMode ? `Edit Invoice: ${existingInvoiceNumber}` : "Create New Invoice"}
               </h1>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-slate-900 text-brand-gold border border-brand-gold/40 shadow-sm">
-                Invoice ID: {nextInvoiceNumber}
+                {isEditMode ? `Status: ${existingStatus}` : `Invoice ID: ${nextInvoiceNumber}`}
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -288,28 +335,46 @@ export const InvoiceBuilderPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled={submitting}
-            onClick={() => handleSubmit("DRAFT")}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
-          >
-            <Save className="w-4 h-4 text-slate-500" />
-            <span>Save Draft</span>
-          </button>
-          <button
-            type="button"
-            disabled={submitting}
-            onClick={() => handleSubmit("ISSUED")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-brand-navy hover:bg-slate-900 text-white shadow-md transition border border-brand-gold/40 hover:border-brand-gold disabled:opacity-50"
-          >
-            {submitting ? (
-              <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            ) : (
-              <Send className="w-4 h-4 text-brand-gold" />
-            )}
-            <span>Issue & Post to Ledger</span>
-          </button>
+          {isEditMode ? (
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => handleSubmit()}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-brand-navy hover:bg-slate-900 text-white shadow-md transition border border-brand-gold/40 hover:border-brand-gold disabled:opacity-50"
+            >
+              {submitting ? (
+                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              ) : (
+                <Save className="w-4 h-4 text-brand-gold" />
+              )}
+              <span>Save & Update Invoice</span>
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => handleSubmit("DRAFT")}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
+              >
+                <Save className="w-4 h-4 text-slate-500" />
+                <span>Save Draft</span>
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => handleSubmit("ISSUED")}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-brand-navy hover:bg-slate-900 text-white shadow-md transition border border-brand-gold/40 hover:border-brand-gold disabled:opacity-50"
+              >
+                {submitting ? (
+                  <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                ) : (
+                  <Send className="w-4 h-4 text-brand-gold" />
+                )}
+                <span>Issue & Post to Ledger</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
 

@@ -88,6 +88,38 @@ export class FinancialService {
   }
 
   /**
+   * Adjusts double-entry journal and balances when an issued invoice is edited
+   */
+  public static async adjustInvoiceJournal(
+    invoice: any,
+    deltaFils: number,
+    userId: string,
+    session?: mongoose.ClientSession
+  ): Promise<void> {
+    if (deltaFils === 0) return;
+
+    if (invoice.journalEntryId) {
+      const entry = await JournalEntryModel.findById(invoice.journalEntryId).session(session || null);
+      if (entry) {
+        entry.totalDebitFils = invoice.grandTotalFils;
+        entry.totalCreditFils = invoice.grandTotalFils;
+        for (const line of entry.lines) {
+          if (line.accountCode === "1200") {
+            line.debitFils = invoice.grandTotalFils;
+          } else if (line.accountCode === "4010") {
+            line.creditFils = invoice.grandTotalFils;
+          }
+        }
+        await entry.save({ session });
+      }
+    }
+
+    // Update Accounts: AR changes by delta, Revenue changes by delta
+    await this.adjustAccountBalance("1200", deltaFils, session);
+    await this.adjustAccountBalance("4010", deltaFils, session);
+  }
+
+  /**
    * Posts double-entry journal for customer payment received:
    * DR: Cash (1010) or Bank (1020)
    * CR: 1200 Accounts Receivable (for allocated) & 2020 Customer Advances (for unallocated)

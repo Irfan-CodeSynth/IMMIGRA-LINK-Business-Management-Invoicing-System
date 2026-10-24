@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   AlertCircle,
   X,
+  Edit2,
 } from "lucide-react";
 import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 import { showAppAlert } from "../services/alertService";
@@ -199,6 +200,15 @@ export const InvoiceViewPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Edit Invoice Button */}
+          <Link
+            to={`/invoices/${invoice._id}/edit`}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shadow-sm transition"
+          >
+            <Edit2 className="w-4 h-4" />
+            <span>Edit Invoice</span>
+          </Link>
+
           {/* Print Button */}
           <button
             onClick={handlePrint}

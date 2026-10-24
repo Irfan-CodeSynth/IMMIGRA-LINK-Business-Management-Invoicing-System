@@ -257,14 +257,14 @@ export const InvoicesPage: React.FC = () => {
                           <Eye className="w-3 h-3 text-slate-500" />
                           <span>View</span>
                         </Link>
-                        <button
-                          onClick={() => openEditInvoice(inv)}
-                          title="Edit Invoice Terms / Notes"
+                        <Link
+                          to={`/invoices/${inv._id}/edit`}
+                          title="Edit Full Invoice"
                           className="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 inline-flex items-center gap-1 font-semibold text-[11px] transition shadow-xs"
                         >
                           <Edit2 className="w-3 h-3 text-blue-600" />
                           <span>Edit</span>
-                        </button>
+                        </Link>
                         <button
                           onClick={() => setDeletingInvoice(inv)}
                           title="Delete / Void Invoice"

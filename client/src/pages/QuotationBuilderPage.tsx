@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { api } from "../services/api";
 import { formatAed, numberToAedWords, ICustomer, IService } from "@immigra/shared";
 import {
@@ -26,6 +26,10 @@ interface FormItem {
 
 export const QuotationBuilderPage: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id?: string }>();
+  const isEditMode = Boolean(id);
+  const [existingQuotationNumber, setExistingQuotationNumber] = useState<string>("");
+  const [existingStatus, setExistingStatus] = useState<string>("DRAFT");
 
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [services, setServices] = useState<IService[]>([]);
@@ -69,12 +73,44 @@ export const QuotationBuilderPage: React.FC = () => {
         ]);
         if (custRes.data.success) {
           setCustomers(custRes.data.data.customers);
-          if (custRes.data.data.customers.length > 0) {
-            setCustomerId(custRes.data.data.customers[0]._id);
-          }
         }
         if (srvRes.data.success) {
           setServices(srvRes.data.data);
+        }
+
+        if (id) {
+          const qRes = await api.get(`/quotations/${id}`);
+          if (qRes.data.success) {
+            const q = qRes.data.data;
+            setExistingQuotationNumber(q.quotationNumber);
+            setExistingStatus(q.status);
+            setCustomerId(q.customerId || "");
+            if (q.issueDate) setIssueDate(new Date(q.issueDate).toISOString().split("T")[0]);
+            if (q.expiryDate) setExpiryDate(new Date(q.expiryDate).toISOString().split("T")[0]);
+            setNotes(q.notes || "");
+            setTermsAndConditions(q.termsAndConditions || "");
+
+            if (q.items && q.items.length > 0) {
+              setItems(
+                q.items.map((i: any) => ({
+                  serviceId: i.serviceId,
+                  serviceName: i.serviceName || "",
+                  companyName: i.companyName || "",
+                  clientName: i.clientName || "",
+                  category: i.category || "",
+                  description: i.description || "",
+                  quantity: i.quantity || 1,
+                  unitRateAed: (i.unitRateFils || 0) / 100,
+                  discountAed: (i.discountFils || 0) / 100,
+                  lineTotalAed: (i.lineTotalFils || 0) / 100,
+                }))
+              );
+            }
+          }
+        } else {
+          if (custRes.data.success && custRes.data.data.customers.length > 0) {
+            setCustomerId(custRes.data.data.customers[0]._id);
+          }
         }
       } catch (err) {
         console.error("Error loading quotation data:", err);
@@ -83,7 +119,7 @@ export const QuotationBuilderPage: React.FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [id]);
 
   const handleServiceSelect = (index: number, serviceId: string) => {
     const srv = services.find((s) => s._id === serviceId);
@@ -189,12 +225,20 @@ export const QuotationBuilderPage: React.FC = () => {
         termsAndConditions,
       };
 
-      const res = await api.post("/quotations", payload);
-      if (res.data.success) {
-        navigate("/quotations");
+      if (id) {
+        const res = await api.put(`/quotations/${id}`, payload);
+        if (res.data.success) {
+          showAppAlert("Quotation updated successfully!", "Saved", "success");
+          navigate("/quotations");
+        }
+      } else {
+        const res = await api.post("/quotations", payload);
+        if (res.data.success) {
+          navigate("/quotations");
+        }
       }
     } catch (err: any) {
-      showAppAlert(err.response?.data?.message || "Failed to create quotation", "Creation Error", "error");
+      showAppAlert(err.response?.data?.message || (id ? "Failed to update quotation" : "Failed to create quotation"), "Quotation Error", "error");
     } finally {
       setSubmitting(false);
     }

@@ -367,9 +367,36 @@ export async function updateInvoice(req: AuthenticatedRequest, res: Response): P
       return;
     }
 
-    const { notes, paymentTerms, dueDate, referenceNote, items } = req.body;
+    const { customerId, issueDate, dueDate, supplyDate, referenceNote, items, notes, paymentTerms, status } = req.body;
 
-    if (invoice.status === InvoiceStatus.DRAFT && items && Array.isArray(items)) {
+    const oldCustomerId = invoice.customerId ? invoice.customerId.toString() : null;
+    const oldGrandTotalFils = invoice.grandTotalFils || 0;
+    const oldStatus = invoice.status;
+
+    // 1. Update customer snapshot if customer changed
+    if (customerId && customerId !== oldCustomerId) {
+      const newCustomer = await CustomerModel.findById(customerId);
+      if (!newCustomer) {
+        res.status(404).json({ success: false, message: "Selected customer not found" });
+        return;
+      }
+      invoice.customerId = newCustomer._id;
+      invoice.customerSnapshot = {
+        displayName: newCustomer.displayName,
+        companyName: newCustomer.companyName || (newCustomer.customerType === "BUSINESS" ? newCustomer.displayName : undefined),
+        contactPerson: newCustomer.contactPerson || newCustomer.displayName,
+        clientName: newCustomer.contactPerson || newCustomer.displayName,
+        phone: newCustomer.phone,
+        email: newCustomer.email,
+        address: [newCustomer.address?.street, newCustomer.address?.city, newCustomer.address?.emirate]
+          .filter(Boolean)
+          .join(", "),
+        trn: newCustomer.trn,
+      };
+    }
+
+    // 2. Update line items if provided
+    if (items && Array.isArray(items)) {
       let subtotalFils = 0;
       let totalDiscountFils = 0;
       const calculatedItems = items.map((item: any) => {
@@ -392,18 +419,71 @@ export async function updateInvoice(req: AuthenticatedRequest, res: Response): P
         };
       });
       const grandTotalFils = Math.max(0, subtotalFils - totalDiscountFils);
+
+      // Check if grandTotalFils is less than already recorded payments
+      if (invoice.paidAmountFils > 0 && grandTotalFils < invoice.paidAmountFils) {
+        res.status(400).json({
+          success: false,
+          message: `Cannot reduce invoice total (AED ${(grandTotalFils / 100).toFixed(2)}) below already recorded payments of AED ${(invoice.paidAmountFils / 100).toFixed(2)}.`,
+        });
+        return;
+      }
+
       invoice.items = calculatedItems as any;
       invoice.subtotalFils = subtotalFils;
       invoice.discountFils = totalDiscountFils;
       invoice.grandTotalFils = grandTotalFils;
       invoice.dueAmountFils = Math.max(0, grandTotalFils - invoice.paidAmountFils);
       invoice.amountInWords = numberToAedWords(grandTotalFils, true);
+
+      // Re-evaluate status based on due amount if invoice is not draft or void
+      if (invoice.status !== InvoiceStatus.VOID && invoice.status !== InvoiceStatus.DRAFT) {
+        if (invoice.dueAmountFils === 0 && invoice.grandTotalFils > 0) {
+          invoice.status = InvoiceStatus.PAID;
+        } else if (invoice.paidAmountFils > 0) {
+          invoice.status = InvoiceStatus.PARTIALLY_PAID;
+        } else {
+          invoice.status = InvoiceStatus.ISSUED;
+        }
+      }
     }
 
+    if (issueDate) invoice.issueDate = new Date(issueDate);
+    if (dueDate) invoice.dueDate = new Date(dueDate);
+    if (supplyDate !== undefined) invoice.supplyDate = supplyDate ? new Date(supplyDate) : undefined;
+    if (referenceNote !== undefined) invoice.referenceNote = referenceNote;
     if (notes !== undefined) invoice.notes = notes;
     if (paymentTerms !== undefined) invoice.paymentTerms = paymentTerms;
-    if (referenceNote !== undefined) invoice.referenceNote = referenceNote;
-    if (dueDate) invoice.dueDate = new Date(dueDate);
+
+    // Status transition: If changing DRAFT -> ISSUED
+    if (status && status === InvoiceStatus.ISSUED && oldStatus === InvoiceStatus.DRAFT) {
+      invoice.status = InvoiceStatus.ISSUED;
+      if (req.user) {
+        const journalEntryId = await FinancialService.postInvoiceJournal(invoice, req.user.userId);
+        invoice.journalEntryId = journalEntryId as any;
+      }
+    } else if (oldStatus !== InvoiceStatus.DRAFT && oldStatus !== InvoiceStatus.VOID) {
+      // Adjust balances if total changed or customer changed
+      const deltaFils = invoice.grandTotalFils - oldGrandTotalFils;
+      const newCustomerId = invoice.customerId.toString();
+
+      if (oldCustomerId && newCustomerId !== oldCustomerId) {
+        await CustomerModel.findByIdAndUpdate(oldCustomerId, {
+          $inc: { balanceFils: -oldGrandTotalFils },
+        });
+        await CustomerModel.findByIdAndUpdate(newCustomerId, {
+          $inc: { balanceFils: invoice.grandTotalFils },
+        });
+      } else if (deltaFils !== 0) {
+        await CustomerModel.findByIdAndUpdate(invoice.customerId, {
+          $inc: { balanceFils: deltaFils },
+        });
+      }
+
+      if (deltaFils !== 0 && req.user) {
+        await FinancialService.adjustInvoiceJournal(invoice, deltaFils, req.user.userId);
+      }
+    }
 
     await invoice.save();
 
@@ -414,7 +494,7 @@ export async function updateInvoice(req: AuthenticatedRequest, res: Response): P
         action: "UPDATE_INVOICE",
         entityType: "INVOICE",
         entityId: invoice._id.toString(),
-        details: { invoiceNumber: invoice.invoiceNumber },
+        details: { invoiceNumber: invoice.invoiceNumber, grandTotalFils: invoice.grandTotalFils },
       });
     }
 

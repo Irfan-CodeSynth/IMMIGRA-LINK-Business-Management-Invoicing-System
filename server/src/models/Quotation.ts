@@ -7,9 +7,12 @@ export interface IQuotationDocument extends Document {
   customerSnapshot: {
     displayName: string;
     companyName?: string;
+    contactPerson?: string;
+    clientName?: string;
     phone?: string;
     email?: string;
     address?: string;
+    trn?: string;
   };
   issueDate: Date;
   expiryDate: Date;
