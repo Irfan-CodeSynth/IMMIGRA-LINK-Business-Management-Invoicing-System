@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
 import { IUser, UserRole } from "@immigra/shared";
+import { useAuth } from "../context/AuthContext";
+import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 import {
   UserCheck,
   Plus,
@@ -10,13 +12,17 @@ import {
   CheckCircle,
   XCircle,
   X,
+  Trash2,
 } from "lucide-react";
 import { showAppAlert } from "../services/alertService";
 
 export const StaffPage: React.FC = () => {
+  const { user: currentUser } = useAuth();
   const [staff, setStaff] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<IUser | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -79,6 +85,23 @@ export const StaffPage: React.FC = () => {
     }
   };
 
+  const handleConfirmDelete = async () => {
+    if (!deletingUser) return;
+    setIsDeleting(true);
+    try {
+      const res = await api.delete(`/staff/${deletingUser._id}`);
+      if (res.data.success) {
+        setDeletingUser(null);
+        await fetchStaff();
+        showAppAlert(`Staff user "${deletingUser.name}" has been deleted.`, "User Deleted", "success");
+      }
+    } catch (err: any) {
+      showAppAlert(err.response?.data?.message || "Failed to delete staff member", "Delete Error", "error");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -133,7 +156,14 @@ export const StaffPage: React.FC = () => {
                     <div className="w-7 h-7 rounded-full bg-brand-navy text-brand-gold flex items-center justify-center font-bold text-xs">
                       {u.name.charAt(0)}
                     </div>
-                    <span>{u.name}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span>{u.name}</span>
+                      {currentUser?._id === u._id && (
+                        <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                          You
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 px-4 text-slate-600">{u.email}</td>
                   <td className="py-3 px-4">
@@ -152,12 +182,24 @@ export const StaffPage: React.FC = () => {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <button
-                      onClick={() => handleToggle(u._id)}
-                      className="text-xs font-semibold text-slate-600 hover:text-slate-900"
-                    >
-                      {u.isActive ? "Disable" : "Enable"}
-                    </button>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => handleToggle(u._id)}
+                        className="px-2.5 py-1 rounded text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition border border-transparent hover:border-slate-200"
+                      >
+                        {u.isActive ? "Disable" : "Enable"}
+                      </button>
+                      {currentUser?._id !== u._id && (
+                        <button
+                          onClick={() => setDeletingUser(u)}
+                          title={`Delete account for ${u.name}`}
+                          className="px-2.5 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 inline-flex items-center gap-1 font-semibold text-xs transition shadow-xs border border-rose-100"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Delete</span>
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
@@ -267,6 +309,19 @@ export const StaffPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete User Modal */}
+      <DeleteConfirmModal
+        isOpen={Boolean(deletingUser)}
+        title="Delete Staff Account"
+        itemName={deletingUser ? `${deletingUser.name} (${deletingUser.email})` : undefined}
+        message="Are you sure you want to permanently delete this employee account? They will immediately lose access to the system."
+        warningNote="This action cannot be undone. User audit logs will be retained for administrative compliance."
+        confirmText="Delete Account"
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setDeletingUser(null)}
+      />
     </div>
   );
 };

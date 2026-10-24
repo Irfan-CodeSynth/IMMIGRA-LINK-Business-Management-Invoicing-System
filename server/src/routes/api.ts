@@ -71,7 +71,7 @@ import {
 } from "../controllers/accountingController";
 import { getDashboardOverview } from "../controllers/dashboardController";
 import { getSettings, updateSettings } from "../controllers/settingsController";
-import { listStaff, createStaff, toggleStaffStatus } from "../controllers/staffController";
+import { listStaff, createStaff, toggleStaffStatus, deleteStaff } from "../controllers/staffController";
 import { listAuditLogs } from "../controllers/auditLogController";
 import { authMiddleware, requireRole } from "../middleware/authMiddleware";
 import { UserRole } from "@immigra/shared";
@@ -165,6 +165,7 @@ router.post("/accounting/manual-journal", requireRole([UserRole.SUPER_ADMIN, Use
 router.get("/staff", requireRole([UserRole.SUPER_ADMIN, UserRole.MANAGER]), listStaff);
 router.post("/staff", requireRole([UserRole.SUPER_ADMIN]), createStaff);
 router.patch("/staff/:id/toggle-status", requireRole([UserRole.SUPER_ADMIN]), toggleStaffStatus);
+router.delete("/staff/:id", requireRole([UserRole.SUPER_ADMIN]), deleteStaff);
 
 // Settings
 router.get("/settings", getSettings);
