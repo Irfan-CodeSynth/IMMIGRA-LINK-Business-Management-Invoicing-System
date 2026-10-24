@@ -35,7 +35,7 @@ export declare const CustomerSchema: z.ZodObject<{
     companyName: z.ZodOptional<z.ZodString>;
     contactPerson: z.ZodOptional<z.ZodString>;
     email: z.ZodUnion<[z.ZodOptional<z.ZodString>, z.ZodLiteral<"">]>;
-    phone: z.ZodString;
+    phone: z.ZodDefault<z.ZodOptional<z.ZodString>>;
     whatsapp: z.ZodOptional<z.ZodString>;
     nationality: z.ZodOptional<z.ZodString>;
     address: z.ZodOptional<z.ZodObject<{
@@ -76,10 +76,10 @@ export declare const CustomerSchema: z.ZodObject<{
     trn?: string | undefined;
     notes?: string | undefined;
 }, {
-    phone: string;
     customerType: CustomerType;
     displayName: string;
     email?: string | undefined;
+    phone?: string | undefined;
     companyName?: string | undefined;
     contactPerson?: string | undefined;
     whatsapp?: string | undefined;

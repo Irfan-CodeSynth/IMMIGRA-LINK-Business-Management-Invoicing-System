@@ -7,7 +7,7 @@ export interface IQuotationDocument extends Document {
   customerSnapshot: {
     displayName: string;
     companyName?: string;
-    phone: string;
+    phone?: string;
     email?: string;
     address?: string;
   };
@@ -48,7 +48,7 @@ const QuotationSchema = new Schema<IQuotationDocument>(
       companyName: { type: String },
       contactPerson: { type: String },
       clientName: { type: String },
-      phone: { type: String, required: true },
+      phone: { type: String, default: "" },
       email: { type: String },
       address: { type: String },
     },

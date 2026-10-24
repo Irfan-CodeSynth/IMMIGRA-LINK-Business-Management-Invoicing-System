@@ -48,7 +48,7 @@ const CustomerSchema = new mongoose_1.Schema({
     companyName: { type: String, trim: true, index: true },
     contactPerson: { type: String, trim: true },
     email: { type: String, lowercase: true, trim: true },
-    phone: { type: String, required: true, trim: true, index: true },
+    phone: { type: String, trim: true, default: "", index: true },
     whatsapp: { type: String, trim: true },
     nationality: { type: String, trim: true },
     address: {

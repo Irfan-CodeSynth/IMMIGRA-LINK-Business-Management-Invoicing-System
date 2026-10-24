@@ -23,7 +23,7 @@ export interface IInvoiceDocument extends Document {
     companyName?: string;
     contactPerson?: string;
     clientName?: string;
-    phone: string;
+    phone?: string;
     email?: string;
     address?: string;
     trn?: string;
@@ -78,7 +78,7 @@ const InvoiceSchema = new Schema<IInvoiceDocument>(
       companyName: { type: String },
       contactPerson: { type: String },
       clientName: { type: String },
-      phone: { type: String, required: true },
+      phone: { type: String, default: "" },
       email: { type: String },
       address: { type: String },
       trn: { type: String },

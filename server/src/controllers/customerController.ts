@@ -83,7 +83,9 @@ export async function createCustomer(req: AuthenticatedRequest, res: Response): 
   try {
     const parsed = CustomerSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ success: false, errors: parsed.error.flatten() });
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstError = Object.values(fieldErrors).flat()[0] || "Invalid customer data";
+      res.status(400).json({ success: false, message: firstError, errors: parsed.error.flatten() });
       return;
     }
 
@@ -116,7 +118,9 @@ export async function updateCustomer(req: AuthenticatedRequest, res: Response): 
   try {
     const parsed = CustomerSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ success: false, errors: parsed.error.flatten() });
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      const firstError = Object.values(fieldErrors).flat()[0] || "Invalid customer data";
+      res.status(400).json({ success: false, message: firstError, errors: parsed.error.flatten() });
       return;
     }
 

@@ -188,7 +188,7 @@ export const InvoiceBuilderPage: React.FC = () => {
         displayName: newCustName,
         companyName: newCustType === "BUSINESS" ? newCustName : undefined,
         contactPerson: newCustContact || undefined,
-        phone: newCustPhone,
+        phone: newCustPhone.trim() || undefined,
       });
       if (res.data.success) {
         setCustomers((prev) => [res.data.data, ...prev]);
@@ -199,7 +199,12 @@ export const InvoiceBuilderPage: React.FC = () => {
         setNewCustPhone("");
       }
     } catch (err: any) {
-      showAppAlert(err.response?.data?.message || "Failed to add customer", "Customer Error", "error");
+      const errorData = err.response?.data;
+      let msg = errorData?.message;
+      if (!msg && errorData?.errors?.fieldErrors) {
+        msg = Object.values(errorData.errors.fieldErrors).flat().join(", ");
+      }
+      showAppAlert(msg || err.message || "Failed to add customer", "Customer Error", "error");
     }
   };
 
@@ -672,11 +677,10 @@ export const InvoiceBuilderPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Mobile / Phone *
+                  Mobile / Phone
                 </label>
                 <input
                   type="text"
-                  required
                   value={newCustPhone}
                   onChange={(e) => setNewCustPhone(e.target.value)}
                   placeholder="+971 50 123 4567"

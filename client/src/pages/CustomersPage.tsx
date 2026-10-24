@@ -116,7 +116,7 @@ export const CustomersPage: React.FC = () => {
         displayName,
         companyName: customerType === CustomerType.BUSINESS ? (companyName || displayName) : undefined,
         contactPerson: contactPerson || undefined,
-        phone,
+        phone: phone.trim() || undefined,
         whatsapp: whatsapp || undefined,
         email: email || undefined,
         nationality: nationality || undefined,
@@ -138,7 +138,12 @@ export const CustomersPage: React.FC = () => {
       setShowModal(false);
       await fetchCustomers();
     } catch (err: any) {
-      showAppAlert(err.response?.data?.message || "Failed to save customer", "Save Failed", "error");
+      const errorData = err.response?.data;
+      let msg = errorData?.message;
+      if (!msg && errorData?.errors?.fieldErrors) {
+        msg = Object.values(errorData.errors.fieldErrors).flat().join(", ");
+      }
+      showAppAlert(msg || err.message || "Failed to save customer", "Save Failed", "error");
     } finally {
       setSubmitting(false);
     }
@@ -294,7 +299,7 @@ export const CustomersPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3 px-4 text-slate-700 font-mono">
-                      {c.phone}
+                      {c.phone || "—"}
                     </td>
                     <td className="py-3 px-4 text-slate-600">
                       {c.address?.city || "Dubai"}
@@ -424,10 +429,9 @@ export const CustomersPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Mobile / Phone *</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Mobile / Phone</label>
                   <input
                     type="text"
-                    required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="0562420614"

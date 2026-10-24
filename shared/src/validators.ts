@@ -20,7 +20,7 @@ export const CustomerSchema = z.object({
   companyName: z.string().optional(),
   contactPerson: z.string().optional(),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
-  phone: z.string().min(5, "Phone is required"),
+  phone: z.string().optional().default(""),
   whatsapp: z.string().optional(),
   nationality: z.string().optional(),
   address: z

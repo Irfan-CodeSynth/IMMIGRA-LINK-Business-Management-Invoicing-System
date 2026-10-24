@@ -27,7 +27,7 @@ export interface ICustomer {
     companyName?: string;
     contactPerson?: string;
     email?: string;
-    phone: string;
+    phone?: string;
     whatsapp?: string;
     nationality?: string;
     address?: {
@@ -81,7 +81,7 @@ export interface IInvoice {
         companyName?: string;
         contactPerson?: string;
         clientName?: string;
-        phone: string;
+        phone?: string;
         email?: string;
         address?: string;
         trn?: string;
@@ -130,7 +130,7 @@ export interface IQuotation {
         companyName?: string;
         contactPerson?: string;
         clientName?: string;
-        phone: string;
+        phone?: string;
         email?: string;
         address?: string;
     };

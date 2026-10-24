@@ -57,7 +57,7 @@ const InvoiceSchema = new mongoose_1.Schema({
         companyName: { type: String },
         contactPerson: { type: String },
         clientName: { type: String },
-        phone: { type: String, required: true },
+        phone: { type: String, default: "" },
         email: { type: String },
         address: { type: String },
         trn: { type: String },

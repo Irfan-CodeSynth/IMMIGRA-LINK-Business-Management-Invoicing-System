@@ -83,7 +83,9 @@ async function createCustomer(req, res) {
     try {
         const parsed = shared_1.CustomerSchema.safeParse(req.body);
         if (!parsed.success) {
-            res.status(400).json({ success: false, errors: parsed.error.flatten() });
+            const fieldErrors = parsed.error.flatten().fieldErrors;
+            const firstError = Object.values(fieldErrors).flat()[0] || "Invalid customer data";
+            res.status(400).json({ success: false, message: firstError, errors: parsed.error.flatten() });
             return;
         }
         const seq = await (0, Sequence_1.getNextSequence)("CUSTOMER", 1001);
@@ -112,7 +114,9 @@ async function updateCustomer(req, res) {
     try {
         const parsed = shared_1.CustomerSchema.safeParse(req.body);
         if (!parsed.success) {
-            res.status(400).json({ success: false, errors: parsed.error.flatten() });
+            const fieldErrors = parsed.error.flatten().fieldErrors;
+            const firstError = Object.values(fieldErrors).flat()[0] || "Invalid customer data";
+            res.status(400).json({ success: false, message: firstError, errors: parsed.error.flatten() });
             return;
         }
         const customer = await Customer_1.CustomerModel.findByIdAndUpdate(req.params.id, { $set: parsed.data }, { new: true });

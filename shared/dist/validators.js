@@ -20,7 +20,7 @@ exports.CustomerSchema = zod_1.z.object({
     companyName: zod_1.z.string().optional(),
     contactPerson: zod_1.z.string().optional(),
     email: zod_1.z.string().email("Invalid email").optional().or(zod_1.z.literal("")),
-    phone: zod_1.z.string().min(5, "Phone is required"),
+    phone: zod_1.z.string().optional().default(""),
     whatsapp: zod_1.z.string().optional(),
     nationality: zod_1.z.string().optional(),
     address: zod_1.z

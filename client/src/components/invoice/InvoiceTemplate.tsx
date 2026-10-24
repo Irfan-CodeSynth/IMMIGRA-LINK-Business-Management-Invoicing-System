@@ -135,9 +135,11 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
           <div className="font-bold text-slate-900 text-sm">
             {invoice.customerSnapshot?.companyName || invoice.customerSnapshot?.displayName}
           </div>
-          <div className="text-slate-600 mt-1">
-            Contact No: <strong>{invoice.customerSnapshot?.phone}</strong>
-          </div>
+          {invoice.customerSnapshot?.phone ? (
+            <div className="text-slate-600 mt-1">
+              Contact No: <strong>{invoice.customerSnapshot.phone}</strong>
+            </div>
+          ) : null}
           {invoice.customerSnapshot?.email && (
             <div className="text-slate-600">Email: {invoice.customerSnapshot.email}</div>
           )}
