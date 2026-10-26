@@ -29,7 +29,7 @@ app.use((0, morgan_1.default)("dev"));
 app.use("/uploads", express_1.default.static(path_1.default.join(__dirname, "../uploads")));
 // Health check
 app.get("/health", (req, res) => {
-    res.json({ status: "ok", app: "IMMIGRA LINK BUSINESS SERVICES", timestamp: new Date() });
+    res.json({ status: "ok", app: "DeepX Invoice System - DeepX Ai Solutions", timestamp: new Date() });
 });
 // API Routes
 app.use("/api", api_1.default);
@@ -62,7 +62,7 @@ async function startServer() {
     await (0, seed_1.seedDatabase)();
     app.listen(PORT, () => {
         console.log(`=======================================================`);
-        console.log(`  IMMIGRA LINK BUSINESS SERVICES — Backend API Server`);
+        console.log(`  DeepX Invoice System — DeepX Ai Solutions Backend API Server`);
         console.log(`  Running on: http://localhost:${PORT}`);
         console.log(`  Health Check: http://localhost:${PORT}/health`);
         console.log(`=======================================================`);

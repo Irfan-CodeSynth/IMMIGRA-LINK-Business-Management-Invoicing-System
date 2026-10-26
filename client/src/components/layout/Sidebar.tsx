@@ -16,7 +16,7 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
-import immigraLogo from "../../assets/immigra-logo.jpg";
+import deepxLogo from "../../assets/deepx-logo.png";
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -43,23 +43,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     <aside className="w-64 bg-brand-navy text-slate-200 flex flex-col h-full border-r border-slate-800 shadow-xl no-print">
       {/* Brand Header */}
       <div className="p-4 border-b border-slate-800/80 bg-brand-navy-dark flex items-center gap-3 flex-shrink-0">
-        <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-brand-gold/80 shadow-md flex-shrink-0 bg-white">
+        <div className="w-12 h-12 rounded-lg overflow-hidden border border-brand-gold/60 shadow-md flex-shrink-0 bg-white p-1 flex items-center justify-center">
           <img
-            src={immigraLogo}
-            alt="Immigra Link Logo"
-            className="w-full h-full object-cover"
+            src={deepxLogo}
+            alt="DeepX Ai Solutions Logo"
+            className="w-full h-full object-contain"
           />
         </div>
         <div className="overflow-hidden flex-1">
-          <h1 className="text-sm font-bold tracking-tight text-white leading-tight uppercase font-mono">
-            IMMIGRA LINK
+          <h1 className="text-sm font-bold tracking-tight text-white leading-tight font-sans">
+            DEEPX
           </h1>
-          <p className="text-[10px] text-brand-gold font-medium tracking-wider uppercase">
-            Business Services LLC
+          <p className="text-[10px] text-brand-gold-light font-semibold tracking-wider">
+            Ai Solutions
           </p>
           <div className="flex items-center gap-1 text-[9px] text-emerald-400 mt-0.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            UAE Portal Active
+            Invoice System Active
           </div>
         </div>
         {/* Mobile Close Button */}
@@ -116,8 +116,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       {/* Footer */}
       <div className="p-4 border-t border-slate-800/60 flex-shrink-0">
         <div className="text-[9px] text-slate-500 text-center leading-relaxed">
-          © 2026 IMMIGRA LINK BUSINESS SERVICES LLC<br />
-          <span className="text-slate-600">All Rights Reserved · UAE</span>
+          © 2026 DeepX Ai Solutions<br />
+          <span className="text-slate-600">DeepX Invoice System</span>
         </div>
       </div>
     </aside>

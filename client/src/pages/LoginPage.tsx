@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import immigraLogo from "../assets/immigra-logo.jpg";
+import deepxLogo from "../assets/deepx-logo.png";
 import { Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 export const LoginPage: React.FC = () => {
@@ -41,18 +41,18 @@ export const LoginPage: React.FC = () => {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden relative z-10">
         {/* Top Header Card */}
         <div className="bg-brand-navy p-6 text-center border-b border-brand-gold/40 relative">
-          <div className="w-24 h-24 mx-auto rounded-xl overflow-hidden border-2 border-brand-gold shadow-lg mb-3 bg-white">
+          <div className="w-32 h-16 mx-auto rounded-xl overflow-hidden border border-brand-gold/50 shadow-lg mb-3 bg-white p-2 flex items-center justify-center">
             <img
-              src={immigraLogo}
-              alt="IMMIGRA LINK"
-              className="w-full h-full object-cover"
+              src={deepxLogo}
+              alt="DeepX Ai Solutions"
+              className="w-full h-full object-contain"
             />
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-white font-mono uppercase">
-            IMMIGRA LINK
+          <h2 className="text-xl font-bold tracking-tight text-white font-sans uppercase">
+            DEEPX AI SOLUTIONS
           </h2>
           <p className="text-xs text-brand-gold font-semibold tracking-wider uppercase mt-0.5">
-            Business Management & Invoicing System
+            DeepX Invoice System
           </p>
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 mt-2 rounded-full bg-slate-900/60 border border-slate-700 text-[10px] text-slate-300">
             <ShieldCheck className="w-3 h-3 text-brand-gold" />

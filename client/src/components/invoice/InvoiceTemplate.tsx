@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import JsBarcode from "jsbarcode";
 import { formatAed, IInvoice } from "@immigra/shared";
-import immigraLogo from "../../assets/immigra-logo.jpg";
+import deepxLogo from "../../assets/deepx-logo.png";
 
 interface InvoiceTemplateProps {
   invoice: IInvoice;
@@ -46,10 +46,10 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
   }, [invoice]);
 
   const company = companySettings || {
-    companyName: "IMMIGRA LINK BUSINESS SERVICES",
-    address: "Al Garhoud, Dubai, United Arab Emirates",
-    phone: "+971 50 585 6318",
-    email: "info@immigralink.ae",
+    companyName: "DeepX Ai Solutions",
+    address: "Dubai, United Arab Emirates",
+    phone: "",
+    email: "info.deepxaisol@gmail.com",
   };
 
   const formattedDate = new Date(invoice.issueDate).toLocaleDateString("en-GB", {
@@ -68,23 +68,23 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
       <div className="flex justify-between items-start border-b-2 border-slate-900/10 pb-6 mb-6">
         {/* Company Brand Logo & Name */}
         <div className="flex items-center gap-4">
-          <div className="w-20 h-20 rounded-xl overflow-hidden border border-brand-gold/60 shadow-md flex-shrink-0 bg-white">
+          <div className="w-24 h-16 rounded-xl overflow-hidden border border-brand-gold/50 shadow-sm flex-shrink-0 bg-white p-1 flex items-center justify-center">
             <img
-              src={immigraLogo}
-              alt="IMMIGRA LINK"
-              className="w-full h-full object-cover"
+              src={deepxLogo}
+              alt="DeepX Ai Solutions"
+              className="w-full h-full object-contain"
             />
           </div>
           <div>
-            <h1 className="text-xl font-extrabold tracking-tight text-brand-navy font-mono uppercase">
+            <h1 className="text-xl font-extrabold tracking-tight text-brand-navy font-sans">
               {company.companyName}
             </h1>
             <p className="text-xs text-brand-gold font-bold tracking-wider uppercase">
-              Business Management & Government Transactions
+              AI Solutions & Business Management
             </p>
-            <p className="text-[11px] text-slate-600 mt-1">{company.address}</p>
+            <p className="text-[11px] text-slate-600 mt-0.5">{company.address}</p>
             <p className="text-[11px] text-slate-600">
-              Mob: <strong>{company.phone}</strong> • Email: {company.email}
+              Email: <strong>{company.email}</strong>{company.phone ? ` • Mob: ${company.phone}` : ""}
             </p>
           </div>
         </div>
@@ -284,7 +284,7 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
             </div>
             <div className="text-[9px] text-slate-500">Scan to verify invoice</div>
             <div className="text-[8px] font-mono text-slate-400 mt-1 uppercase">
-              IMMIGRA LINK AUTH
+              DEEPX AI AUTH
             </div>
           </div>
         </div>

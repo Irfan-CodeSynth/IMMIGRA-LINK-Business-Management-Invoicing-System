@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
 import { Response } from "express";
 
-const JWT_SECRET = process.env.JWT_SECRET || "immigra_link_secure_secret_2026_uae_business_mgmt";
-const COOKIE_NAME = "immigra_token";
+const JWT_SECRET = process.env.JWT_SECRET || "deepx_secure_secret_2026_ai_solutions";
+const COOKIE_NAME = "deepx_token";
 
 export interface TokenPayload {
   userId: string;

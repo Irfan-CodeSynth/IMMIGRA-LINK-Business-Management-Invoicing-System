@@ -17,18 +17,18 @@ import { DeleteConfirmModal } from "../components/common/DeleteConfirmModal";
 import { showAppAlert } from "../services/alertService";
 
 const DEFAULT_CATEGORIES: string[] = [
-  "Immigration Services",
-  "Visa Services",
-  "Labour and MOHRE Services",
-  "Business Setup",
-  "Document Clearing",
-  "Government Transactions",
-  "RTA Services",
-  "General Consultancy",
+  "AI & Machine Learning",
+  "Software Development",
+  "Cloud & Infrastructure",
+  "Consulting & Advisory",
+  "Business Setup & Licensing",
+  "Digital Solutions",
+  "PRO & Documentation",
+  "Visa & Government Services",
   "Other Services",
 ];
 
-const CATEGORIES_STORAGE_KEY = "immigra_service_categories_list_v1";
+const CATEGORIES_STORAGE_KEY = "deepx_service_categories_list_v1";
 
 function loadSavedCategories(): string[] {
   try {
@@ -288,10 +288,10 @@ export const ServicesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            Service Catalog & Government Fees
+            Service Catalog & Offerings
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Configure UAE visa, immigration, MOHRE, business setup, and clearing services
+            Configure business services, software solutions, custom categories, and rates
           </p>
         </div>
 

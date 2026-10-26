@@ -9,8 +9,8 @@ exports.verifyToken = verifyToken;
 exports.setAuthCookie = setAuthCookie;
 exports.clearAuthCookie = clearAuthCookie;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const JWT_SECRET = process.env.JWT_SECRET || "immigra_link_secure_secret_2026_uae_business_mgmt";
-const COOKIE_NAME = "immigra_token";
+const JWT_SECRET = process.env.JWT_SECRET || "deepx_secure_secret_2026_ai_solutions";
+const COOKIE_NAME = "deepx_token";
 exports.COOKIE_NAME = COOKIE_NAME;
 function signToken(payload) {
     return jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn: "7d" });

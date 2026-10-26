@@ -52,7 +52,7 @@ export const InvoiceBuilderPage: React.FC = () => {
   const [supplyDate, setSupplyDate] = useState<string>("");
   const [referenceNote, setReferenceNote] = useState<string>("");
   const [notes, setNotes] = useState<string>(
-    "Thank you for choosing Immigra Link Business Services. For inquiries, contact info@immigralink.ae."
+    "Thank you for choosing DeepX Ai Solutions. For inquiries, contact info.deepxaisol@gmail.com."
   );
   const [paymentTerms, setPaymentTerms] = useState<string>(
     "Please make payment via Bank Transfer to Emirates NBD or Cash at our office counter."
@@ -329,7 +329,7 @@ export const InvoiceBuilderPage: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Build a professional UAE commercial invoice for Immigra Link (Strict sequential numbering)
+              Build a professional commercial invoice for DeepX Ai Solutions (Strict sequential numbering)
             </p>
           </div>
         </div>

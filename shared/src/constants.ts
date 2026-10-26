@@ -1,4 +1,5 @@
-export const APP_NAME = "IMMIGRA LINK BUSINESS SERVICES";
+export const APP_NAME = "DeepX Ai Solutions";
+export const SOFTWARE_NAME = "DeepX Invoice System";
 export const DEFAULT_CURRENCY = "AED";
 export const TIMEZONE = "Asia/Dubai";
 

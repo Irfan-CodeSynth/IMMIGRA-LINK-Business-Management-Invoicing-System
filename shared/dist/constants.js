@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFAULT_CHART_OF_ACCOUNTS = exports.AccountSubType = exports.AccountType = exports.PaymentMethod = exports.QuotationStatus = exports.InvoiceStatus = exports.ServiceCategory = exports.CustomerType = exports.UserRole = exports.TIMEZONE = exports.DEFAULT_CURRENCY = exports.APP_NAME = void 0;
-exports.APP_NAME = "IMMIGRA LINK BUSINESS SERVICES";
+exports.DEFAULT_CHART_OF_ACCOUNTS = exports.AccountSubType = exports.AccountType = exports.PaymentMethod = exports.QuotationStatus = exports.InvoiceStatus = exports.ServiceCategory = exports.CustomerType = exports.UserRole = exports.TIMEZONE = exports.DEFAULT_CURRENCY = exports.SOFTWARE_NAME = exports.APP_NAME = void 0;
+exports.APP_NAME = "DeepX Ai Solutions";
+exports.SOFTWARE_NAME = "DeepX Invoice System";
 exports.DEFAULT_CURRENCY = "AED";
 exports.TIMEZONE = "Asia/Dubai";
 var UserRole;

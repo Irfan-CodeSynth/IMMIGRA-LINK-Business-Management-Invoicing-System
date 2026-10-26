@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../services/api";
 import { formatAed } from "@immigra/shared";
-import immigraLogo from "../assets/immigra-logo.jpg";
+import deepxLogo from "../assets/deepx-logo.png";
 import { CheckCircle2, XCircle, ShieldCheck, FileText, ArrowRight } from "lucide-react";
 
 export const VerifyInvoicePage: React.FC = () => {
@@ -42,14 +42,14 @@ export const VerifyInvoicePage: React.FC = () => {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden text-center">
         {/* Top Brand Header */}
         <div className="bg-brand-navy p-6 text-center border-b border-brand-gold/40">
-          <div className="w-20 h-20 mx-auto rounded-xl overflow-hidden border-2 border-brand-gold shadow-lg mb-2 bg-white">
-            <img src={immigraLogo} alt="Logo" className="w-full h-full object-cover" />
+          <div className="w-28 h-14 mx-auto rounded-xl overflow-hidden border border-brand-gold/50 shadow-lg mb-2 bg-white p-1 flex items-center justify-center">
+            <img src={deepxLogo} alt="Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-base font-bold text-white uppercase font-mono">
-            IMMIGRA LINK BUSINESS SERVICES
+          <h1 className="text-base font-bold text-white uppercase font-sans">
+            DEEPX AI SOLUTIONS
           </h1>
           <p className="text-[10px] text-brand-gold font-semibold uppercase tracking-wider mt-0.5">
-            Official Invoice Verification Portal
+            DeepX Invoice Verification Portal
           </p>
         </div>
 

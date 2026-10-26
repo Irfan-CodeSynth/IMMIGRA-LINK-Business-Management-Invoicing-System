@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
 import { formatAed, IPayment, ICustomer, IInvoice, PaymentMethod } from "@immigra/shared";
-import immigraLogo from "../assets/immigra-logo.jpg";
+import deepxLogo from "../assets/deepx-logo.png";
 import {
   CreditCard,
   PlusCircle,
@@ -439,10 +439,10 @@ export const PaymentsPage: React.FC = () => {
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 animate-in fade-in zoom-in-95 text-xs">
             <div className="flex justify-between items-start border-b border-slate-200 pb-4 mb-4">
               <div className="flex items-center gap-3">
-                <img src={immigraLogo} alt="Logo" className="w-12 h-12 rounded object-cover border" />
+                <img src={deepxLogo} alt="Logo" className="w-16 h-10 rounded object-contain border p-0.5 bg-white" />
                 <div>
                   <h3 className="font-bold text-slate-900 text-sm">
-                    IMMIGRA LINK BUSINESS SERVICES
+                    DeepX Ai Solutions
                   </h3>
                   <p className="text-[10px] text-brand-gold font-semibold uppercase">
                     Official Payment Receipt Voucher

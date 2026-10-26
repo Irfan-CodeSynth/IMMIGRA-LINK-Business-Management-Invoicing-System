@@ -57,34 +57,68 @@ export async function seedDatabase(): Promise<void> {
     await existingDeepX.save();
   }
 
-  // 2. Company Settings (Clean baseline)
-  const existingSettings = await CompanySettingsModel.findOne();
+  // 2. Company Settings (Rebranded to DeepX Ai Solutions) & One-time Database Flush
+  let existingSettings = await CompanySettingsModel.findOne();
   if (!existingSettings) {
-    await CompanySettingsModel.create({
-      companyName: "IMMIGRA LINK BUSINESS SERVICES",
+    existingSettings = await CompanySettingsModel.create({
+      companyName: "DeepX Ai Solutions",
       country: "United Arab Emirates",
       city: "Dubai",
-      address: "Al Garhoud, Dubai, United Arab Emirates",
-      phone: "+971 50 585 6318",
-      email: "info@immigralink.ae",
-      website: "www.immigralink.ae",
-      tradeLicenseNumber: "CN-1094829",
+      address: "Dubai, United Arab Emirates",
+      phone: "",
+      email: "info.deepxaisol@gmail.com",
+      website: "www.deepxai.com",
+      tradeLicenseNumber: "",
       trn: "",
       isVatRegistered: false,
       currency: "AED",
       timezone: "Asia/Dubai",
       bankDetails: {
         bankName: "",
-        accountTitle: "",
+        accountTitle: "DeepX Ai Solutions",
         accountNumber: "",
         iban: "",
       },
       invoicePrefix: "INV-",
       invoiceNextSequence: 1,
-      invoiceDefaultNotes: "Thank you for choosing Immigra Link Business Services.",
+      invoiceDefaultNotes: "Thank you for choosing DeepX Ai Solutions.",
       invoicePaymentInstructions: "Please transfer payment via Bank or Cash.",
-      logoUrl: "/uploads/immigra-logo.jpg",
+      logoUrl: "/src/assets/deepx-logo.png",
     });
+  } else if (existingSettings.companyName !== "DeepX Ai Solutions") {
+    // One-time flush of legacy Immigra Link test data
+    const { InvoiceModel } = require("../models/Invoice");
+    const { QuotationModel } = require("../models/Quotation");
+    const { PaymentModel } = require("../models/Payment");
+    const { ExpenseModel } = require("../models/Expense");
+    const { CustomerModel } = require("../models/Customer");
+    const { SupplierModel } = require("../models/Supplier");
+    const { ServiceModel } = require("../models/Service");
+    const { JournalEntryModel } = require("../models/JournalEntry");
+    const { SequenceModel } = require("../models/Sequence");
+
+    await Promise.all([
+      InvoiceModel.deleteMany({}),
+      QuotationModel.deleteMany({}),
+      PaymentModel.deleteMany({}),
+      ExpenseModel.deleteMany({}),
+      CustomerModel.deleteMany({}),
+      SupplierModel.deleteMany({}),
+      ServiceModel.deleteMany({}),
+      JournalEntryModel.deleteMany({}),
+      SequenceModel.deleteMany({}),
+      AccountModel.updateMany({}, { $set: { currentBalanceFils: 0 } }),
+    ]);
+
+    existingSettings.companyName = "DeepX Ai Solutions";
+    existingSettings.email = "info.deepxaisol@gmail.com";
+    existingSettings.website = "www.deepxai.com";
+    existingSettings.invoiceDefaultNotes = "Thank you for choosing DeepX Ai Solutions.";
+    existingSettings.logoUrl = "/src/assets/deepx-logo.png";
+    existingSettings.invoicePrefix = "INV-";
+    existingSettings.invoiceNextSequence = 1;
+    await existingSettings.save();
+    console.log("[Seeder] Flushed old entries and updated company to DeepX Ai Solutions!");
   }
 
   // 3. Official UAE Chart of Accounts structure (all balances 0)

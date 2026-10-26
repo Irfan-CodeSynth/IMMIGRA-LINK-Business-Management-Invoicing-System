@@ -30,13 +30,13 @@ export interface ICompanySettingsDocument extends Document {
 
 const CompanySettingsSchema = new Schema<ICompanySettingsDocument>(
   {
-    companyName: { type: String, default: "IMMIGRA LINK BUSINESS SERVICES" },
+    companyName: { type: String, default: "DeepX Ai Solutions" },
     country: { type: String, default: "United Arab Emirates" },
     city: { type: String, default: "Dubai" },
     address: { type: String, default: "Al Garhoud, Dubai, United Arab Emirates" },
     phone: { type: String, default: "+971 4 295 5555" },
-    email: { type: String, default: "info@immigralink.ae" },
-    website: { type: String, default: "www.immigralink.ae" },
+    email: { type: String, default: "info.deepxaisol@gmail.com" },
+    website: { type: String, default: "www.deepxai.com" },
     tradeLicenseNumber: { type: String, default: "CN-1094829" },
     trn: { type: String, default: "" },
     isVatRegistered: { type: Boolean, default: false },
@@ -44,7 +44,7 @@ const CompanySettingsSchema = new Schema<ICompanySettingsDocument>(
     timezone: { type: String, default: "Asia/Dubai" },
     bankDetails: {
       bankName: { type: String, default: "Emirates NBD" },
-      accountTitle: { type: String, default: "IMMIGRA LINK BUSINESS SERVICES" },
+      accountTitle: { type: String, default: "DeepX Ai Solutions" },
       accountNumber: { type: String, default: "1019283746501" },
       iban: { type: String, default: "AE3402600001019283746501" },
       swiftCode: { type: String, default: "EBIBAEAD" },
@@ -54,13 +54,13 @@ const CompanySettingsSchema = new Schema<ICompanySettingsDocument>(
     invoiceNextSequence: { type: Number, default: 1 },
     invoiceDefaultNotes: {
       type: String,
-      default: "Thank you for choosing Immigra Link Business Services. For any inquiries regarding this invoice, please reach out to our customer care.",
+      default: "Thank you for choosing DeepX Ai Solutions. For inquiries regarding this invoice, please contact info.deepxaisol@gmail.com.",
     },
     invoicePaymentInstructions: {
       type: String,
       default: "Please make payment via Bank Transfer or Cash at our office counter. Mention the invoice number as the payment reference.",
     },
-    logoUrl: { type: String, default: "/uploads/immigra-logo.jpg" },
+    logoUrl: { type: String, default: "/src/assets/deepx-logo.png" },
   },
   { timestamps: true }
 );

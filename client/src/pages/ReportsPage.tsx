@@ -112,7 +112,7 @@ export const ReportsPage: React.FC = () => {
           <div className="flex items-center justify-between pb-4 border-b border-slate-200">
             <div>
               <h2 className="text-base font-bold text-slate-900 uppercase tracking-wider">
-                IMMIGRA LINK BUSINESS SERVICES — Trial Balance
+                DeepX Ai Solutions — Trial Balance
               </h2>
               <p className="text-xs text-slate-500">
                 As of {new Date().toLocaleDateString("en-GB")} • All figures in United Arab Emirates Dirhams (AED)
@@ -181,7 +181,7 @@ export const ReportsPage: React.FC = () => {
               Statement of Profit or Loss (Income Statement)
             </h2>
             <p className="text-xs text-slate-500">
-              IMMIGRA LINK BUSINESS SERVICES • Dubai, UAE • In AED
+              DeepX Ai Solutions • In AED
             </p>
           </div>
 
@@ -255,7 +255,7 @@ export const ReportsPage: React.FC = () => {
               Statement of Financial Position (Balance Sheet)
             </h2>
             <p className="text-xs text-slate-500">
-              IMMIGRA LINK BUSINESS SERVICES • Dubai, UAE • In AED
+              DeepX Ai Solutions • In AED
             </p>
           </div>
 

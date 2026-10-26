@@ -115,7 +115,7 @@ export const DashboardPage: React.FC = () => {
             Executive Financial Dashboard
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Real-time business performance, invoicing status, and cash flow for Immigra Link
+            Real-time business performance, invoicing status, and cash flow for DeepX Ai Solutions
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

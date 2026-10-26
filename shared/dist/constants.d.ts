@@ -1,4 +1,5 @@
-export declare const APP_NAME = "IMMIGRA LINK BUSINESS SERVICES";
+export declare const APP_NAME = "DeepX Ai Solutions";
+export declare const SOFTWARE_NAME = "DeepX Invoice System";
 export declare const DEFAULT_CURRENCY = "AED";
 export declare const TIMEZONE = "Asia/Dubai";
 export declare enum UserRole {

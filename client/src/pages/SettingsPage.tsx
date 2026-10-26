@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
-import immigraLogo from "../assets/immigra-logo.jpg";
+import deepxLogo from "../assets/deepx-logo.png";
 import {
   Settings,
   Building,
@@ -16,19 +16,19 @@ export const SettingsPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
-  const [companyName, setCompanyName] = useState("IMMIGRA LINK BUSINESS SERVICES");
-  const [address, setAddress] = useState("Al Garhoud, Dubai, United Arab Emirates");
-  const [phone, setPhone] = useState("+971 50 585 6318");
-  const [email, setEmail] = useState("info@immigralink.ae");
-  const [website, setWebsite] = useState("www.immigralink.ae");
-  const [tradeLicenseNumber, setTradeLicenseNumber] = useState("CN-1094829");
+  const [companyName, setCompanyName] = useState("DeepX Ai Solutions");
+  const [address, setAddress] = useState("Dubai, United Arab Emirates");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("info.deepxaisol@gmail.com");
+  const [website, setWebsite] = useState("www.deepxai.com");
+  const [tradeLicenseNumber, setTradeLicenseNumber] = useState("");
   const [isVatRegistered, setIsVatRegistered] = useState(false);
 
   // Invoice Template
   const [invoicePrefix, setInvoicePrefix] = useState("INV-");
   const [invoiceNextSequence, setInvoiceNextSequence] = useState<number>(1);
   const [invoiceDefaultNotes, setInvoiceDefaultNotes] = useState(
-    "Thank you for trusting Immigra Link Business Services. For questions regarding this invoice, contact info@immigralink.ae."
+    "Thank you for choosing DeepX Ai Solutions. For questions regarding this invoice, contact info.deepxaisol@gmail.com."
   );
   const [invoicePaymentInstructions, setInvoicePaymentInstructions] = useState(
     "Please transfer payment via Bank or Cash with invoice # reference."
@@ -137,8 +137,8 @@ export const SettingsPage: React.FC = () => {
         {/* Brand & Legal Info */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
           <div className="flex items-center gap-4 pb-4 border-b border-slate-200">
-            <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-brand-gold bg-white p-0.5 shadow">
-              <img src={immigraLogo} alt="Logo" className="w-full h-full object-cover" />
+            <div className="w-24 h-14 rounded-xl overflow-hidden border border-brand-gold/60 bg-white p-1 shadow flex items-center justify-center">
+              <img src={deepxLogo} alt="Logo" className="w-full h-full object-contain" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-slate-900 uppercase">

@@ -10,7 +10,7 @@ export const api = axios.create({
 
 // Attach JWT token from localStorage if present
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("immigra_token");
+  const token = localStorage.getItem("deepx_token") || localStorage.getItem("immigra_token");
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -22,6 +22,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      localStorage.removeItem("deepx_token");
       localStorage.removeItem("immigra_token");
       // If we are not on the login or verify pages, redirect to login
       if (

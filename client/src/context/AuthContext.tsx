@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const res = await api.post("/auth/login", { email, password });
     if (res.data.success) {
       if (res.data.data.token) {
-        localStorage.setItem("immigra_token", res.data.data.token);
+        localStorage.setItem("deepx_token", res.data.data.token);
       }
       setUser(res.data.data.user);
     }
@@ -49,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await api.post("/auth/logout");
     } finally {
+      localStorage.removeItem("deepx_token");
       localStorage.removeItem("immigra_token");
       setUser(null);
       window.location.href = "/login";

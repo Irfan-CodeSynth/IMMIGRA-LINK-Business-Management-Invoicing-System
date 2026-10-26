@@ -84,7 +84,7 @@ export const AppAlertModal: React.FC = () => {
               {renderIcon()}
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Immigra Link System
+                  DeepX Invoice System
                 </span>
                 <h3 className="text-base font-bold text-slate-900 tracking-tight leading-snug">
                   {alert.title || "Notification"}

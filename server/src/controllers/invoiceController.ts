@@ -124,7 +124,7 @@ export async function createInvoice(req: AuthenticatedRequest, res: Response): P
     // Get company settings for prefix
     const settings: any = (await CompanySettingsModel.findOne()) || {
       invoicePrefix: "INV-",
-      invoiceDefaultNotes: "Thank you for choosing Immigra Link Business Services.",
+      invoiceDefaultNotes: "Thank you for choosing DeepX Ai Solutions.",
       invoicePaymentInstructions: "Please transfer payment via Bank or Cash.",
     };
     const prefix = settings.invoicePrefix || "INV-";
@@ -340,7 +340,7 @@ export async function verifyInvoiceByHash(req: Request, res: Response): Promise<
       success: true,
       verified: true,
       data: {
-        issuer: settings?.companyName || "IMMIGRA LINK BUSINESS SERVICES",
+        issuer: settings?.companyName || "DeepX Ai Solutions",
         country: settings?.country || "United Arab Emirates",
         invoiceNumber: invoice.invoiceNumber,
         customerName: invoice.customerSnapshot.displayName,

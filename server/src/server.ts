@@ -31,7 +31,7 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Health check
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", app: "IMMIGRA LINK BUSINESS SERVICES", timestamp: new Date() });
+  res.json({ status: "ok", app: "DeepX Invoice System - DeepX Ai Solutions", timestamp: new Date() });
 });
 
 // API Routes
@@ -69,7 +69,7 @@ async function startServer() {
 
   app.listen(PORT, () => {
     console.log(`=======================================================`);
-    console.log(`  IMMIGRA LINK BUSINESS SERVICES — Backend API Server`);
+    console.log(`  DeepX Invoice System — DeepX Ai Solutions Backend API Server`);
     console.log(`  Running on: http://localhost:${PORT}`);
     console.log(`  Health Check: http://localhost:${PORT}/health`);
     console.log(`=======================================================`);

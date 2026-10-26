@@ -1,7 +1,7 @@
 {
-  "name": "immigra-link-system",
+  "name": "deepx-invoice-system",
   "version": "1.0.0",
-  "description": "IMMIGRA LINK BUSINESS SERVICES - Enterprise Management, Invoicing, and Double-Entry Accounting System",
+  "description": "DeepX Invoice System - Enterprise Management, Invoicing, and Double-Entry Accounting System by DeepX Ai Solutions",
   "private": true,
   "workspaces": [
     "shared",
@@ -20,13 +20,13 @@
     "test": "node ./node_modules/tsx/dist/cli.mjs --tsconfig server/tsconfig.json server/src/tests/financial.test.ts"
   },
   "keywords": [
-    "immigra-link",
-    "uae",
-    "accounting",
+    "deepx",
+    "deepx-ai-solutions",
     "invoicing",
+    "accounting",
     "mern"
   ],
-  "author": "IMMIGRA LINK BUSINESS SERVICES",
+  "author": "DeepX Ai Solutions",
   "license": "ISC",
   "devDependencies": {
     "@rollup/wasm-node": "^4.65.0"

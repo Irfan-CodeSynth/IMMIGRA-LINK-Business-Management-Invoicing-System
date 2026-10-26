@@ -144,7 +144,7 @@ export async function convertQuotationToInvoice(req: AuthenticatedRequest, res: 
 
     const settings: any = (await CompanySettingsModel.findOne()) || {
       invoicePrefix: "INV-",
-      invoiceDefaultNotes: "Thank you for choosing Immigra Link Business Services.",
+      invoiceDefaultNotes: "Thank you for choosing DeepX Ai Solutions.",
       invoicePaymentInstructions: "Please transfer payment via Bank or Cash.",
     };
     const prefix = settings.invoicePrefix || "INV-";
