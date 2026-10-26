@@ -92,6 +92,7 @@ router.post("/accounting/manual-journal", (0, authMiddleware_1.requireRole)([sha
 router.get("/staff", (0, authMiddleware_1.requireRole)([shared_1.UserRole.SUPER_ADMIN, shared_1.UserRole.MANAGER]), staffController_1.listStaff);
 router.post("/staff", (0, authMiddleware_1.requireRole)([shared_1.UserRole.SUPER_ADMIN]), staffController_1.createStaff);
 router.patch("/staff/:id/toggle-status", (0, authMiddleware_1.requireRole)([shared_1.UserRole.SUPER_ADMIN]), staffController_1.toggleStaffStatus);
+router.delete("/staff/:id", (0, authMiddleware_1.requireRole)([shared_1.UserRole.SUPER_ADMIN]), staffController_1.deleteStaff);
 // Settings
 router.get("/settings", settingsController_1.getSettings);
 router.put("/settings", (0, authMiddleware_1.requireRole)([shared_1.UserRole.SUPER_ADMIN]), settingsController_1.updateSettings);

@@ -29,7 +29,7 @@ async function purgeAllDemoData() {
     const delAuditLogs = await AuditLog_1.AuditLogModel.deleteMany({});
     // 2. Delete non-admin demo staff
     const delStaff = await User_1.UserModel.deleteMany({
-        email: { $ne: "admin@immigralink.ae" },
+        email: { $ne: "info.deepxaisol@gmail.com" },
     });
     // 3. Reset all account balances to 0
     await Account_1.AccountModel.updateMany({}, { $set: { currentBalanceFils: 0 } });
