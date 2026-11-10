@@ -97,7 +97,7 @@ export declare const CustomerSchema: z.ZodObject<{
 export declare const ServiceSchema: z.ZodObject<{
     name: z.ZodString;
     code: z.ZodDefault<z.ZodOptional<z.ZodString>>;
-    category: z.ZodString;
+    category: z.ZodDefault<z.ZodOptional<z.ZodString>>;
     description: z.ZodOptional<z.ZodString>;
     defaultRateAed: z.ZodNumber;
     costAed: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
@@ -116,9 +116,9 @@ export declare const ServiceSchema: z.ZodObject<{
     description?: string | undefined;
 }, {
     name: string;
-    category: string;
     defaultRateAed: number;
     code?: string | undefined;
+    category?: string | undefined;
     description?: string | undefined;
     costAed?: number | undefined;
     governmentFeesAed?: number | undefined;

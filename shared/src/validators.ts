@@ -39,7 +39,7 @@ export const CustomerSchema = z.object({
 export const ServiceSchema = z.object({
   name: z.string().min(2, "Service name is required"),
   code: z.string().optional().default(""),
-  category: z.string().min(1, "Category is required"),
+  category: z.string().optional().default(""),
   description: z.string().optional(),
   defaultRateAed: z.number().min(0, "Rate must be non-negative"),
   costAed: z.number().min(0).optional().default(0),
