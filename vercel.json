@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "echo 'Prebuilt assets ready'",
   "outputDirectory": "client/dist",
   "headers": [
     {
