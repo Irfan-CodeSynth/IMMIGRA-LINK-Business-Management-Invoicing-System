@@ -158,7 +158,6 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
               <th className="py-2.5 px-3">Service</th>
               <th className="py-2.5 px-3">Client Name</th>
               <th className="py-2.5 px-3">Description</th>
-              <th className="py-2.5 px-3">Category</th>
               <th className="py-2.5 px-3 text-center w-14">Qty</th>
               <th className="py-2.5 px-3 text-right w-24">Fees/Rate</th>
               <th className="py-2.5 px-3 text-right w-28">Total</th>
@@ -180,7 +179,6 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({
                   {item.clientName || "—"}
                 </td>
                 <td className="py-2.5 px-3 text-slate-600">{item.description || "—"}</td>
-                <td className="py-2.5 px-3 text-slate-600">{item.category || "—"}</td>
                 <td className="py-2.5 px-3 text-center font-medium">{item.quantity}</td>
                 <td className="py-2.5 px-3 text-right font-mono">
                   {formatAed(item.unitRateFils)}

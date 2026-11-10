@@ -353,7 +353,6 @@ export const QuotationBuilderPage: React.FC = () => {
                   <th className="py-2.5 px-3 w-36">Company Name</th>
                   <th className="py-2.5 px-3 w-36">Client Name</th>
                   <th className="py-2.5 px-3">Description</th>
-                  <th className="py-2.5 px-3 w-28">Category</th>
                   <th className="py-2.5 px-3 w-20 text-center">Qty</th>
                   <th className="py-2.5 px-3 w-28 text-right">Rate (AED)</th>
                   <th className="py-2.5 px-3 w-24 text-right">Disc (AED)</th>
@@ -423,17 +422,6 @@ export const QuotationBuilderPage: React.FC = () => {
                           handleItemChange(idx, "description", e.target.value)
                         }
                         placeholder="Description (optional)"
-                        className="w-full text-xs border border-slate-200 rounded p-1.5"
-                      />
-                    </td>
-                    <td className="py-2 px-3">
-                      <input
-                        type="text"
-                        value={item.category}
-                        onChange={(e) =>
-                          handleItemChange(idx, "category", e.target.value)
-                        }
-                        placeholder="Category"
                         className="w-full text-xs border border-slate-200 rounded p-1.5"
                       />
                     </td>
